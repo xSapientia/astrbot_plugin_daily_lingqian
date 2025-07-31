@@ -25,10 +25,8 @@ class JieqianHistoryHandler:
             # 获取历史记录数量限制
             display_count = int(self.plugin.config.get('jqhi_display_count', '10'))
             
-            # 加载解签历史数据
-            from ...core.core_lq_group import GroupManager
-            group_manager = GroupManager()
-            jieqian_data = group_manager.load_jieqian_history()
+            # 直接使用LLMManager的方法加载数据
+            jieqian_data = self.plugin.llm_manager.load_jieqian_history()
             
             if target_user_id not in jieqian_data:
                 yield event.plain_result(f"「{user_info['card']}」还没有解签历史记录。")

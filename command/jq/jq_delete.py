@@ -20,12 +20,14 @@ class JieqianDeleteHandler:
             
             # 如果有参数且是数字，删除指定序号的今日解签记录
             if param and param.isdigit():
-                await self._delete_specific_jieqian(event, user_id, int(param))
+                async for result in self._delete_specific_jieqian(event, user_id, int(param)):
+                    yield result
                 return
             
             # 如果参数是 --confirm，删除除今日外的所有历史记录
             if param == "--confirm":
-                await self._delete_history_except_today(event, user_id)
+                async for result in self._delete_history_except_today(event, user_id):
+                    yield result
                 return
             
             # 默认提示用法
@@ -54,11 +56,9 @@ class JieqianDeleteHandler:
                 yield event.plain_result(f"❌ 序号无效，今日共有 {len(today_jieqian_list)} 条解签记录，请输入 1-{len(today_jieqian_list)} 之间的序号。")
                 return
             
-            # 加载数据
-            from ...core.core_lq_group import GroupManager
-            group_manager = GroupManager()
-            jieqian_data = group_manager.load_jieqian_history()
-            jieqian_content = group_manager.load_jieqian_content()
+            # 直接使用LLMManager的方法加载数据
+            jieqian_data = self.plugin.llm_manager.load_jieqian_history()
+            jieqian_content = self.plugin.llm_manager.load_jieqian_content()
             
             today = get_today()
             deleted_item = None
@@ -90,8 +90,9 @@ class JieqianDeleteHandler:
                         del jieqian_content[user_id]
             
             # 保存数据
-            success1 = group_manager.save_jieqian_history(jieqian_data)
-            success2 = group_manager.save_jieqian_content(jieqian_content)
+            self.plugin.llm_manager.save_jieqian_history(jieqian_data)
+            self.plugin.llm_manager.save_jieqian_content(jieqian_content)
+            success1 = success2 = True
             
             if success1 and success2:
                 if deleted_item:
@@ -110,11 +111,9 @@ class JieqianDeleteHandler:
     async def _delete_history_except_today(self, event: AstrMessageEvent, user_id: str):
         """删除除今日外的历史记录"""
         try:
-            # 加载解签历史数据
-            from ...core.core_lq_group import GroupManager
-            group_manager = GroupManager()
-            jieqian_data = group_manager.load_jieqian_history()
-            jieqian_content = group_manager.load_jieqian_content()
+            # 直接使用LLMManager的方法加载数据
+            jieqian_data = self.plugin.llm_manager.load_jieqian_history()
+            jieqian_content = self.plugin.llm_manager.load_jieqian_content()
             
             if user_id not in jieqian_data:
                 yield event.plain_result("您还没有解签历史记录。")
@@ -138,8 +137,9 @@ class JieqianDeleteHandler:
                     del jieqian_content[user_id]
             
             # 保存数据
-            success1 = group_manager.save_jieqian_history(jieqian_data)
-            success2 = group_manager.save_jieqian_content(jieqian_content)
+            self.plugin.llm_manager.save_jieqian_history(jieqian_data)
+            self.plugin.llm_manager.save_jieqian_content(jieqian_content)
+            success1 = success2 = True
             
             if success1 and success2:
                 yield event.plain_result("✅ 已删除您除今日外的所有解签历史记录。")

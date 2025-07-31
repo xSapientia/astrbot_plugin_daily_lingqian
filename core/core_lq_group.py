@@ -12,13 +12,13 @@ class GroupManager:
     """群聊管理器"""
     
     @staticmethod
-    def get_group_members(event: AstrMessageEvent):
+    async def get_group_members(event: AstrMessageEvent):
         """获取群成员列表"""
         try:
             if not event.get_group_id():
                 return []
             
-            group = event.get_group()
+            group = await event.get_group()
             if not group or not hasattr(group, 'members'):
                 return []
             
@@ -43,7 +43,7 @@ class GroupManager:
             return []
     
     @staticmethod
-    def filter_group_ranking_data(event: AstrMessageEvent, history_data: dict, sort_data: list):
+    async def filter_group_ranking_data(event: AstrMessageEvent, history_data: dict, sort_data: list):
         """
         筛选群聊内的排行数据
         :param event: 消息事件
@@ -57,7 +57,7 @@ class GroupManager:
                 return []
             
             # 获取群成员列表
-            group_members = GroupManager.get_group_members(event)
+            group_members = await GroupManager.get_group_members(event)
             if not group_members:
                 logger.warning("无法获取群成员列表")
                 return []
@@ -146,7 +146,7 @@ class GroupManager:
             return 9999
     
     @staticmethod
-    def filter_group_jieqian_ranking_data(event: AstrMessageEvent, jieqian_data: dict):
+    async def filter_group_jieqian_ranking_data(event: AstrMessageEvent, jieqian_data: dict):
         """
         筛选群聊内的解签排行数据
         :param event: 消息事件
@@ -159,7 +159,7 @@ class GroupManager:
                 return []
             
             # 获取群成员列表
-            group_members = GroupManager.get_group_members(event)
+            group_members = await GroupManager.get_group_members(event)
             if not group_members:
                 logger.warning("无法获取群成员列表")
                 return []

@@ -38,11 +38,9 @@ class JieqianInitializeHandler:
                 target_user_id = event.get_sender_id()
                 target_name = "您"
             
-            # 加载解签历史数据
-            from ...core.core_lq_group import GroupManager
-            group_manager = GroupManager()
-            jieqian_data = group_manager.load_jieqian_history()
-            jieqian_content = group_manager.load_jieqian_content()
+            # 直接使用LLMManager的方法加载数据
+            jieqian_data = self.plugin.llm_manager.load_jieqian_history()
+            jieqian_content = self.plugin.llm_manager.load_jieqian_content()
             
             today = get_today()
             
@@ -56,8 +54,9 @@ class JieqianInitializeHandler:
                 del jieqian_content[target_user_id]
             
             # 保存数据
-            success1 = group_manager.save_jieqian_history(jieqian_data)
-            success2 = group_manager.save_jieqian_content(jieqian_content)
+            self.plugin.llm_manager.save_jieqian_history(jieqian_data)
+            self.plugin.llm_manager.save_jieqian_content(jieqian_content)
+            success1 = success2 = True
             
             if success1 and success2:
                 yield event.plain_result(f"✅ 已初始化{target_name}的今日解签记录。")
