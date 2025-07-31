@@ -164,7 +164,7 @@ class LLMManager:
             # 获取解签提示词模板
             jieqian_prompt = self.config.get('jieqian_config', {}).get('jieqian_prompt', '')
             if not jieqian_prompt:
-                jieqian_prompt = "请根据{user_id}今日抽取的灵签, 对其提出的问题进行解签, 100字以内"
+                jieqian_prompt = "请根据{user_id}今日抽取的灵签, 对其提出的问题进行解签, 50字以内"
             
             # 根据用户ID和灵签数据构建完整的解签提示词
             full_prompt = await self._build_detailed_jieqian_prompt(
