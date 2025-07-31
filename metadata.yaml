@@ -1,0 +1,5 @@
+name: astrbot_plugin_daily_lingqian
+desc: "一个模拟每日抽取观音灵签的插件"
+version: 0.0.1
+author: xSapientia
+repo: https://github.com/xSapientia/astrbot_plugin_daily_lingqian
