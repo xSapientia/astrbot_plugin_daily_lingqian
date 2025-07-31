@@ -91,7 +91,7 @@ class DailyLingqianPlugin(Star):
     def _update_pics_version_options(self):
         """动态更新图片版本选项"""
         try:
-            resource_path = os.path.join(os.path.dirname(__file__), "resource")
+            resource_path = os.path.join(os.path.dirname(__file__), ".resource")
             if not os.path.exists(resource_path):
                 logger.warning("资源目录不存在，创建默认目录")
                 os.makedirs(resource_path, exist_ok=True)
@@ -287,11 +287,11 @@ class DailyLingqianPlugin(Star):
                 'gongwei': lingqian_data.get('gongwei', ''),
             })
             
-            # 添加图片路径 - 构建格式：./resource/{lq_pics_version}/{qianxu}.png
+            # 添加图片路径 - 构建格式：./.resource/{lq_pics_version}/{qianxu}.png
             pics_version = self.config.get('lq_pics_version', '100_default')
             if lingqian_data.get('qianxu'):
                 plugin_dir = os.path.dirname(__file__)
-                image_path = os.path.join(plugin_dir, "resource", pics_version, f"{lingqian_data['qianxu']}.png")
+                image_path = os.path.join(plugin_dir, ".resource", pics_version, f"{lingqian_data['qianxu']}.png")
                 # 确保路径存在，如果不存在则使用占位符
                 if os.path.exists(image_path):
                     variables['lqpic'] = image_path

@@ -69,7 +69,7 @@ class LingqianHandler:
             if lingqian_data.get('qianxu'):
                 pics_version = self.plugin.config.get('lq_pics_version', '100_default')
                 plugin_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-                image_path = os.path.join(plugin_dir, "resource", pics_version, f"{lingqian_data['qianxu']}.png")
+                image_path = os.path.join(plugin_dir, ".resource", pics_version, f"{lingqian_data['qianxu']}.png")
                 
                 if os.path.exists(image_path):
                     yield event.image_result(image_path)
@@ -111,7 +111,7 @@ class LingqianHandler:
             if lingqian_data.get('qianxu'):
                 pics_version = self.plugin.config.get('lq_pics_version', '100_default')
                 plugin_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-                image_path = os.path.join(plugin_dir, "resource", pics_version, f"{lingqian_data['qianxu']}.png")
+                image_path = os.path.join(plugin_dir, ".resource", pics_version, f"{lingqian_data['qianxu']}.png")
                 
                 if os.path.exists(image_path):
                     yield event.image_result(image_path)
