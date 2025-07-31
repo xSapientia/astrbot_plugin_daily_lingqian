@@ -1,162 +1,151 @@
 """
-用户信息获取模块
-获取用户的nickname、card、title等信息
+用户信息获取模块 - 基于aiocqhttp API的完美方案
+参考GitHub代码，直接调用API获取真实用户信息
 """
 
 import asyncio
+from typing import Dict, Optional, Tuple, Any
 from astrbot.api.event import AstrMessageEvent
 from astrbot.api import logger
 import astrbot.api.message_components as Comp
 
 class UserInfoManager:
-    """用户信息管理器"""
+    """用户信息管理器 - API直接获取版"""
     
     @staticmethod
-    async def get_user_info(event: AstrMessageEvent, target_user_id: str = None):
+    async def get_user_info(event: AstrMessageEvent, target_user_id: str = None) -> Dict[str, Any]:
         """
-        获取用户信息
-        :param event: 消息事件
-        :param target_user_id: 目标用户ID，如果为None则获取发送者信息
-        :return: dict 包含nickname, card, title等信息
+        获取用户信息 - 直接调用API
+        
+        Args:
+            event: 消息事件
+            target_user_id: 目标用户ID（如果为None则获取发送者信息）
+            
+        Returns:
+            包含用户信息的字典
         """
-        try:
-            # 如果指定了目标用户ID，尝试从@消息中获取
-            if target_user_id:
-                # 检查消息中是否有@组件
-                messages = event.get_messages()
-                for msg in messages:
-                    if isinstance(msg, Comp.At) and str(msg.qq) == str(target_user_id):
-                        # 找到@的用户，获取其信息
-                        return await UserInfoManager._get_at_user_info(event, target_user_id)
-                
-                # 如果没有找到@消息，返回基本信息
-                return {
-                    'user_id': target_user_id,
-                    'nickname': target_user_id,  # 如果无法获取nickname，使用user_id
-                    'card': target_user_id,
-                    'title': ''
-                }
+        user_id = target_user_id or event.get_sender_id()
+        
+        # 获取基础信息
+        if not target_user_id:
+            # 获取发送者信息 - 需要调用API获取详细信息
+            if event.get_platform_name() == "aiocqhttp":
+                return await UserInfoManager._get_aiocqhttp_user_info(event, user_id)
             else:
-                # 获取发送者信息
-                return await UserInfoManager._get_sender_info(event)
+                # 其他平台使用基础信息
+                nickname = event.get_sender_name() or f"用户{user_id[-6:]}"
+                return {
+                    "user_id": user_id,
+                    "nickname": nickname,
+                    "card": nickname,
+                    "title": "无",
+                    "sex": "unknown",
+                    "platform": event.get_platform_name(),
+                    "group_id": event.get_group_id() or ""
+                }
+        
+        # 获取@用户的详细信息
+        if event.get_platform_name() == "aiocqhttp":
+            return await UserInfoManager._get_aiocqhttp_user_info(event, user_id)
+        else:
+            # 其他平台使用基础信息
+            return {
+                "user_id": user_id,
+                "nickname": f"用户{user_id[-6:]}",
+                "card": f"用户{user_id[-6:]}",
+                "title": "无",
+                "sex": "unknown",
+                "platform": event.get_platform_name(),
+                "group_id": event.get_group_id() or ""
+            }
+    
+    @staticmethod
+    async def _get_aiocqhttp_user_info(event: AstrMessageEvent, user_id: str) -> Dict[str, Any]:
+        """
+        从aiocqhttp获取用户详细信息 - 参考GitHub完美方案
+        
+        Args:
+            event: 消息事件  
+            user_id: 用户ID
+            
+        Returns:
+            用户信息字典
+        """
+        try:
+            # 获取aiocqhttp client
+            from astrbot.core.platform.sources.aiocqhttp.aiocqhttp_message_event import AiocqhttpMessageEvent
+            
+            if isinstance(event, AiocqhttpMessageEvent):
+                client = event.bot
                 
-        except Exception as e:
-            logger.error(f"获取用户信息失败: {e}")
-            user_id = target_user_id or event.get_sender_id()
-            return {
-                'user_id': user_id,
-                'nickname': user_id,
-                'card': user_id,
-                'title': ''
-            }
-    
-    @staticmethod
-    async def _get_sender_info(event: AstrMessageEvent):
-        """获取发送者信息"""
-        try:
-            user_id = event.get_sender_id()
-            nickname = event.get_sender_name() or user_id
-            
-            # 尝试获取群名片
-            card = nickname
-            title = ''
-            
-            # 如果是群聊，尝试获取更详细的信息
-            if event.get_group_id():
+                # 获取陌生人信息
+                stranger_info = {}
                 try:
-                    await asyncio.sleep(0)  # 确保在异步上下文中
-                    group = await event.get_group()
-                    if group and hasattr(group, 'members'):
-                        for member in group.members:
-                            if str(member.user_id) == str(user_id):
-                                # 优先使用群名片(card)，如果没有则使用昵称
-                                member_card = getattr(member, 'card', None)
-                                member_nickname = getattr(member, 'nickname', None)
-                                
-                                if member_card and member_card.strip():
-                                    card = member_card
-                                elif member_nickname and member_nickname.strip():
-                                    card = member_nickname
-                                else:
-                                    card = nickname
-                                
-                                title = getattr(member, 'title', '')
-                                logger.debug(f"获取到群成员信息: user_id={user_id}, card={card}, nickname={member_nickname}")
-                                break
+                    stranger_info = await client.get_stranger_info(
+                        user_id=int(user_id), no_cache=True
+                    )
+                    logger.debug(f"[UserInfoManager] 获取陌生人信息成功: {user_id}")
                 except Exception as e:
-                    logger.debug(f"获取群成员信息失败: {e}")
-            
-            # 如果还是没有合适的显示名，使用nickname
-            if not card or card.strip() == user_id:
-                card = nickname
-            
-            return {
-                'user_id': user_id,
-                'nickname': nickname,
-                'card': card,
-                'title': title
-            }
+                    logger.debug(f"[UserInfoManager] 获取陌生人信息失败: {e}")
+                
+                # 获取群成员信息
+                member_info = {}
+                group_id = event.get_group_id()
+                if group_id:
+                    try:
+                        member_info = await client.get_group_member_info(
+                            user_id=int(user_id), group_id=int(group_id)
+                        )
+                        logger.debug(f"[UserInfoManager] 获取群成员信息成功: {user_id}")
+                    except Exception as e:
+                        logger.debug(f"[UserInfoManager] 获取群成员信息失败: {e}")
+                
+                # 组合信息
+                nickname = stranger_info.get("nickname") or f"用户{user_id[-6:]}"
+                card = member_info.get("card") or nickname
+                title = member_info.get("title") or "无"
+                sex = stranger_info.get("sex") or "unknown"
+                
+                return {
+                    "user_id": user_id,
+                    "nickname": nickname,
+                    "card": card,
+                    "title": title,
+                    "sex": sex,
+                    "platform": "aiocqhttp",
+                    "group_id": group_id or ""
+                }
             
         except Exception as e:
-            logger.error(f"获取发送者信息失败: {e}")
-            user_id = event.get_sender_id()
-            return {
-                'user_id': user_id,
-                'nickname': user_id,
-                'card': user_id,
-                'title': ''
-            }
+            logger.error(f"[UserInfoManager] aiocqhttp信息获取失败: {e}")
+        
+        # 降级处理
+        return {
+            "user_id": user_id,
+            "nickname": f"用户{user_id[-6:]}",
+            "card": f"用户{user_id[-6:]}",
+            "title": "无",
+            "sex": "unknown",
+            "platform": event.get_platform_name(),
+            "group_id": event.get_group_id() or ""
+        }
     
     @staticmethod
-    async def _get_at_user_info(event: AstrMessageEvent, target_user_id: str):
-        """获取@用户的信息"""
-        try:
-            # 尝试从群成员中获取信息
-            if event.get_group_id():
-                try:
-                    await asyncio.sleep(0)  # 确保在异步上下文中
-                    group = await event.get_group()
-                    if group and hasattr(group, 'members'):
-                        for member in group.members:
-                            if str(member.user_id) == str(target_user_id):
-                                nickname = getattr(member, 'nickname', target_user_id)
-                                card = getattr(member, 'card', None) or nickname
-                                title = getattr(member, 'title', '')
-                                return {
-                                    'user_id': target_user_id,
-                                    'nickname': nickname,
-                                    'card': card,
-                                    'title': title
-                                }
-                except Exception as e:
-                    logger.debug(f"从群成员获取@用户信息失败: {e}")
+    def extract_at_user_id(event: AstrMessageEvent) -> Optional[str]:
+        """
+        从事件中提取@的目标用户ID
+        
+        Args:
+            event: 消息事件
             
-            # 如果无法获取详细信息，返回基本信息
-            return {
-                'user_id': target_user_id,
-                'nickname': target_user_id,
-                'card': target_user_id,
-                'title': ''
-            }
-            
-        except Exception as e:
-            logger.error(f"获取@用户信息失败: {e}")
-            return {
-                'user_id': target_user_id,
-                'nickname': target_user_id,
-                'card': target_user_id,
-                'title': ''
-            }
-    
-    @staticmethod
-    def extract_at_user_id(event: AstrMessageEvent):
-        """从消息中提取@的用户ID"""
+        Returns:
+            用户ID或None
+        """
         try:
-            messages = event.get_messages()
-            for msg in messages:
-                if isinstance(msg, Comp.At):
-                    return str(msg.qq)
-            return None
+            for comp in event.message_obj.message:
+                if isinstance(comp, Comp.At):
+                    return str(comp.qq)
         except Exception as e:
-            logger.error(f"提取@用户ID失败: {e}")
-            return None
+            logger.debug(f"[UserInfoManager] 提取目标用户失败: {e}")
+        
+        return None
