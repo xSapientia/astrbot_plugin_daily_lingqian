@@ -37,6 +37,8 @@ from .command.jq.jq_delete import JieqianDeleteHandler
 from .command.jq.jq_initialize import JieqianInitializeHandler
 from .command.jq.jq_reset import JieqianResetHandler
 
+from .command.handler import CommandHandler
+
 @register(
     "astrbot_plugin_daily_lingqian",
     "xSapientia", 
@@ -73,6 +75,9 @@ class DailyLingqianPlugin(Star):
         self.jq_delete_handler = JieqianDeleteHandler(self)
         self.jq_initialize_handler = JieqianInitializeHandler(self)
         self.jq_reset_handler = JieqianResetHandler(self)
+        
+        # 初始化统一指令处理器
+        self.command_handler = CommandHandler(self)
         
         logger.info("每日灵签插件初始化完成")
     
@@ -252,196 +257,96 @@ class DailyLingqianPlugin(Star):
     # ==================== 灵签指令 ====================
     
     @filter.command("lq", alias={"lingqian", "抽灵签", "灵签"})
-    async def lq_draw_or_query(self, event: AstrMessageEvent):
-        """抽取或查询今日灵签"""
-        if not self._check_whitelist(event):
-            event.stop_event()
-            return
-        
-        async for result in self.lq_handler.handle_draw_or_query(event):
+    async def lq_command(self, event: AstrMessageEvent, subcommand: str = ""):
+        """灵签指令统一入口"""
+        async for result in self.command_handler.handle_lq(event, subcommand):
             yield result
-        
         event.stop_event()
 
-    @filter.command("lq help", alias={"lingqian help"})
-    async def lq_help(self, event: AstrMessageEvent):
-        """显示灵签帮助信息"""
-        if not self._check_whitelist(event):
-            event.stop_event()
-            return
-        
-        async for result in self.lq_help_handler.handle_help(event):
-            yield result
-        
-        event.stop_event()
-
-    @filter.command("lqrank", alias={"lq rank", "lingqian rank", "lingqianrank"})
+    @filter.command("lqrank", alias={"lingqianrank"})
     async def lq_rank(self, event: AstrMessageEvent):
         """查看群内今日灵签排行榜"""
-        if not self._check_whitelist(event):
-            event.stop_event()
-            return
-        
-        async for result in self.lq_rank_handler.handle_rank(event):
+        async for result in self.command_handler.handle_lq(event, "rank"):
             yield result
-        
         event.stop_event()
 
-    @filter.command("lqhistory", alias={"lq history", "lq hi", "lqhi", "lingqian history", "lingqian hi", "lingqianhistory", "lingqianhi"})
+    @filter.command("lqhistory", alias={"lqhi", "lingqianhistory", "lingqianhi"})
     async def lq_history(self, event: AstrMessageEvent):
         """查看灵签历史记录"""
-        if not self._check_whitelist(event):
-            event.stop_event()
-            return
-        
-        async for result in self.lq_history_handler.handle_history(event):
+        async for result in self.command_handler.handle_lq(event, "history"):
             yield result
-        
         event.stop_event()
 
-    @filter.command("lqdelete", alias={"lq delete", "lq del", "lqdel", "lingqian delete", "lingqian del", "lingqiandelete", "lingqiandel"})
+    @filter.command("lqdelete", alias={"lqdel", "lingqiandelete", "lingqiandel"})
     async def lq_delete(self, event: AstrMessageEvent, confirm: str = ""):
         """删除灵签历史记录"""
-        if not self._check_whitelist(event):
-            event.stop_event()
-            return
-        
-        is_confirm = confirm.lower() == "--confirm"
-        async for result in self.lq_delete_handler.handle_delete(event, is_confirm):
+        async for result in self.command_handler.handle_lq(event, "delete"):
             yield result
-        
         event.stop_event()
 
-    @filter.command("lqinitialize", alias={"lq initialize", "lq init", "lqinit", "lingqian initialize", "lingqian init", "lingqianinitialize", "lingqianinit"})
+    @filter.command("lqinitialize", alias={"lqinit", "lingqianinitialize", "lingqianinit"})
     async def lq_initialize(self, event: AstrMessageEvent, confirm: str = ""):
         """初始化灵签今日记录"""
-        if not self._check_whitelist(event):
-            event.stop_event()
-            return
-        
-        is_confirm = confirm.lower() == "--confirm"
-        async for result in self.lq_initialize_handler.handle_initialize(event, is_confirm):
+        async for result in self.command_handler.handle_lq(event, "initialize"):
             yield result
-        
         event.stop_event()
 
-    @filter.command("lqreset", alias={"lq reset", "lq re", "lqre", "lingqian reset", "lingqian re", "lingqianreset", "lingqianre"})
+    @filter.command("lqreset", alias={"lqre", "lingqianreset", "lingqianre"})
     async def lq_reset(self, event: AstrMessageEvent, confirm: str = ""):
         """重置所有灵签数据"""
-        if not self._check_whitelist(event):
-            event.stop_event()
-            return
-        
-        is_confirm = confirm.lower() == "--confirm"
-        async for result in self.lq_reset_handler.handle_reset(event, is_confirm):
+        async for result in self.command_handler.handle_lq(event, "reset"):
             yield result
-        
         event.stop_event()
 
     # ==================== 解签指令 ====================
 
     @filter.command("jq", alias={"jieqian", "解签"})
-    async def jq_jieqian(self, event: AstrMessageEvent, content: str = ""):
-        """解签指令"""
-        if not self._check_whitelist(event):
-            event.stop_event()
-            return
-        
-        if not content:
-            yield event.plain_result("❌ 请提供要解签的内容，例如：jq 我想知道工作运势")
-            event.stop_event()
-            return
-        
-        async for result in self.jq_handler.handle_jieqian(event, content):
+    async def jq_command(self, event: AstrMessageEvent, subcommand: str = "", content: str = ""):
+        """解签指令统一入口"""
+        async for result in self.command_handler.handle_jq(event, subcommand, content):
             yield result
-        
         event.stop_event()
 
-    @filter.command("jq help", alias={"jieqian help"})
-    async def jq_help(self, event: AstrMessageEvent):
-        """显示解签帮助信息"""
-        if not self._check_whitelist(event):
-            event.stop_event()
-            return
-        
-        async for result in self.jq_help_handler.handle_help(event):
-            yield result
-        
-        event.stop_event()
-
-    @filter.command("jqrank", alias={"jq rank", "jieqian rank", "jieqianrank"})
+    @filter.command("jqrank", alias={"jieqianrank"})
     async def jq_rank(self, event: AstrMessageEvent):
         """查看群内今日解签排行榜"""
-        if not self._check_whitelist(event):
-            event.stop_event()
-            return
-        
-        async for result in self.jq_rank_handler.handle_rank(event):
+        async for result in self.command_handler.handle_jq(event, "rank"):
             yield result
-        
         event.stop_event()
 
-    @filter.command("jqlist", alias={"jq list", "jieqian list", "jieqianlist"})
+    @filter.command("jqlist", alias={"jieqianlist"})
     async def jq_list(self, event: AstrMessageEvent, param: str = ""):
         """查看解签列表"""
-        if not self._check_whitelist(event):
-            event.stop_event()
-            return
-        
-        async for result in self.jq_handler.handle_list(event, param):
+        async for result in self.command_handler.handle_jq(event, "list", param):
             yield result
-        
         event.stop_event()
 
-    @filter.command("jqhistory", alias={"jq history", "jq hi", "jqhi", "jieqian history", "jieqian hi", "jieqianhistory", "jieqianhi"})
+    @filter.command("jqhistory", alias={"jqhi", "jieqianhistory", "jieqianhi"})
     async def jq_history(self, event: AstrMessageEvent):
         """查看解签历史记录"""
-        if not self._check_whitelist(event):
-            event.stop_event()
-            return
-        
-        async for result in self.jq_history_handler.handle_history(event):
+        async for result in self.command_handler.handle_jq(event, "history"):
             yield result
-        
         event.stop_event()
 
-    @filter.command("jqdelete", alias={"jq delete", "jq del", "jqdel", "jieqian delete", "jieqian del", "jieqiandelete", "jieqiandel"})
+    @filter.command("jqdelete", alias={"jqdel", "jieqiandelete", "jieqiandel"})
     async def jq_delete(self, event: AstrMessageEvent, confirm: str = ""):
         """删除解签历史记录"""
-        if not self._check_whitelist(event):
-            event.stop_event()
-            return
-        
-        is_confirm = confirm.lower() == "--confirm"
-        async for result in self.jq_delete_handler.handle_delete(event, is_confirm):
+        async for result in self.command_handler.handle_jq(event, "delete"):
             yield result
-        
         event.stop_event()
 
-    @filter.command("jqinitialize", alias={"jq initialize", "jq init", "jqinit", "jieqian initialize", "jieqian init", "jieqianinitialize", "jieqianinit"})
+    @filter.command("jqinitialize", alias={"jqinit", "jieqianinitialize", "jieqianinit"})
     async def jq_initialize(self, event: AstrMessageEvent, confirm: str = ""):
         """初始化解签今日记录"""
-        if not self._check_whitelist(event):
-            event.stop_event()
-            return
-        
-        is_confirm = confirm.lower() == "--confirm"
-        async for result in self.jq_initialize_handler.handle_initialize(event, is_confirm):
+        async for result in self.command_handler.handle_jq(event, "initialize"):
             yield result
-        
         event.stop_event()
 
-    @filter.command("jqreset", alias={"jq reset", "jq re", "jqre", "jieqian reset", "jieqian re", "jieqianreset", "jieqianre"})
+    @filter.command("jqreset", alias={"jqre", "jieqianreset", "jieqianre"})
     async def jq_reset(self, event: AstrMessageEvent, confirm: str = ""):
         """重置所有解签数据"""
-        if not self._check_whitelist(event):
-            event.stop_event()
-            return
-        
-        is_confirm = confirm.lower() == "--confirm"
-        async for result in self.jq_reset_handler.handle_reset(event, is_confirm):
+        async for result in self.command_handler.handle_jq(event, "reset"):
             yield result
-        
         event.stop_event()
 
     async def terminate(self):
