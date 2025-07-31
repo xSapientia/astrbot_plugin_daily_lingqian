@@ -19,49 +19,87 @@ class LingqianHelpHandler:
 🎲 观音灵签 - 使用帮助
 
 🌟 基础指令：
-• lq / lingqian / 抽灵签 / 灵签
-  - 抽取或查询今日灵签
-• lq @某人 / lingqian @某人
-  - 查询他人的今日灵签
+• 显示帮助信息
+    - lq help
+    - lingqian help
+• 抽取自己的今日灵签
+    - lq
+    - lingqian
+    - 抽灵签
+• 查询自己的今日灵签
+    - lq
+    - lingqian
+    - 灵签
+• 查询他人的今日灵签
+    - lq @某人
+    - lingqian @某人
 
 📊 排行榜：
-• lq rank / lqrank
-• lingqian rank / lingqianrank
-  - 查看群内今日灵签排行榜
+• 查看群内今日灵签排行榜
+    - lq rank
+    - lqrank
+    - lingqian rank
+    - lingqianrank
 
 📚 历史记录：
-• lq history / lq hi / lqhistory / lqhi
-• lingqian history / lingqian hi / lingqianhistory / lingqianhi
-  - 查看自己的历史记录
-• lq history @某人 / lq hi @某人
-• lqhistory @某人 / lqhi @某人
-• lingqian history @某人 / lingqian hi @某人
-• lingqianhistory @某人 / lingqianhi @某人
-  - 查看他人的历史记录
+• 查看自己的历史记录
+    - lq history
+    - lq hi
+    - lqhistory
+    - lqhi
+    - lingqian history
+    - lingqian hi
+    - lingqianhistory
+    - lingqianhi
+• 查看他人历史记录
+    - lq history @某人
+    - lq hi @某人
+    - lqhistory @某人
+    - lqhi @某人
+    - lingqian history @某人
+    - lingqian hi @某人
+    - lingqianhistory @某人
+    - lingqianhi @某人
 
 🗑️ 数据管理：
-• lq delete --confirm / lq del --confirm
-• lqdelete --confirm / lqdel --confirm
-• lingqian delete --confirm / lingqian del --confirm
-• lingqiandelete --confirm / lingqiandel --confirm
-  - 删除自己除今日外的历史记录
+• 删除自己除今日外的历史记录
+    - lq delete --confirm
+    - lq del --confirm
+    - lqdelete --confirm
+    - lqdel --confirm
+    - lingqian delete --confirm
+    - lingqian del --confirm
+    - lingqiandelete --confirm
+    - lingqiandel --confirm
 
 ⚙️ 管理员指令：
-• lq initialize --confirm / lq init --confirm
-• lqinitialize --confirm / lqinit --confirm
-• lingqian initialize --confirm / lingqian init --confirm
-• lingqianinitialize --confirm / lingqianinit --confirm
-  - 初始化自己今日记录
-• lq initialize @某人 --confirm / lq init @某人 --confirm
-• lqinitialize @某人 --confirm / lqinit @某人 --confirm
-• lingqian initialize @某人 --confirm / lingqian init @某人 --confirm
-• lingqianinitialize @某人 --confirm / lingqianinit @某人 --confirm
-  - 初始化他人今日记录
-• lq reset --confirm / lq re --confirm
-• lqreset --confirm / lqre --confirm
-• lingqian reset --confirm / lingqian re --confirm
-• lingqianreset --confirm / lingqianre --confirm
-  - 重置所有数据
+• 初始化自己今日记录
+    - lq initialize --confirm
+    - lq init --confirm
+    - lqinitialize --confirm
+    - lqinit --confirm
+    - lingqian initialize --confirm
+    - lingqian init --confirm
+    - lingqianinitialize --confirm
+    - lingqianinit --confirm
+• 初始化他人今日记录
+    - lq initialize @某人 --confirm
+    - lq init @某人 --confirm
+    - lqinitialize @某人 --confirm
+    - lqinit @某人 --confirm
+    - lingqian initialize @某人 --confirm
+    - lingqian init @某人 --confirm
+    - lingqianinitialize @某人 --confirm
+    - lingqianinit @某人 --confirm
+• 重置所有数据
+    - lq reset --confirm
+    - lq re --confirm
+    - lqreset --confirm
+    - lqre --confirm
+    - lingqian reset --confirm
+    - lingqian re --confirm
+    - lingqianreset --confirm
+    - lingqianre --confirm
 
 💡 提示：带 --confirm 的指令需要确认参数才能执行
 """

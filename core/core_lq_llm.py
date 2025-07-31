@@ -114,32 +114,32 @@ class LLMManager:
         """调用LLM进行解签"""
         try:
             # 构建提示词
-            prompt = self._build_jieqian_prompt(lingqian_data, content)
+            base_prompt = self._build_jieqian_prompt(lingqian_data, content)
             
-            # 获取人格
+            # 获取人格和风格提示
             persona = await self._get_persona()
+            style_prompt = self.config.get('jieqian_config', {}).get('style_prompt', '')
+            
+            # 将系统提示词合并到用户提示词中，避免模型不支持系统提示词的问题
+            full_prompt = ""
+            if persona:
+                full_prompt += f"角色设定：{persona}\n\n"
+            if style_prompt:
+                full_prompt += f"回答风格：{style_prompt}\n\n"
+            full_prompt += f"任务：{base_prompt}"
             
             # 尝试使用配置的供应商
             provider = await self._get_provider()
             
             if provider:
-                # 使用指定的供应商
-                contexts = []
-                if persona:
-                    contexts.append({"role": "system", "content": persona})
-                
-                # 添加风格提示
-                style_prompt = self.config.get('jieqian_config', {}).get('style_prompt', '')
-                if style_prompt:
-                    contexts.append({"role": "system", "content": style_prompt})
-                
+                # 使用指定的供应商，不使用system_prompt和contexts中的system角色
                 response = await provider.text_chat(
-                    prompt=prompt,
-                    contexts=contexts,
+                    prompt=full_prompt,
+                    contexts=[],  # 不使用contexts，避免system角色问题
                     session_id=None,
                     image_urls=[],
                     func_tool=None,
-                    system_prompt=""
+                    system_prompt=""  # 不使用system_prompt
                 )
                 
                 if response and response.completion_text:
@@ -148,21 +148,13 @@ class LLMManager:
             # 如果指定供应商失败，尝试使用默认供应商
             default_provider = self.context.get_using_provider()
             if default_provider:
-                contexts = []
-                if persona:
-                    contexts.append({"role": "system", "content": persona})
-                
-                style_prompt = self.config.get('jieqian_config', {}).get('style_prompt', '')
-                if style_prompt:
-                    contexts.append({"role": "system", "content": style_prompt})
-                
                 response = await default_provider.text_chat(
-                    prompt=prompt,
-                    contexts=contexts,
+                    prompt=full_prompt,
+                    contexts=[],  # 不使用contexts，避免system角色问题
                     session_id=None,
                     image_urls=[],
                     func_tool=None,
-                    system_prompt=""
+                    system_prompt=""  # 不使用system_prompt
                 )
                 
                 if response and response.completion_text:

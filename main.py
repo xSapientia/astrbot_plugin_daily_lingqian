@@ -381,9 +381,9 @@ class DailyLingqianPlugin(Star):
         event.stop_event()
 
     @filter.command("jqdelete", alias={"jqdel", "jieqiandelete", "jieqiandel"})
-    async def jq_delete(self, event: AstrMessageEvent, confirm: str = ""):
+    async def jq_delete(self, event: AstrMessageEvent, param: str = ""):
         """删除解签历史记录"""
-        async for result in self.command_handler.handle_jq(event, "delete"):
+        async for result in self.command_handler.handle_jq(event, "delete", param):
             yield result
         event.stop_event()
 

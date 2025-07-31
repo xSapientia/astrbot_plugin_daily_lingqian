@@ -20,7 +20,7 @@ class LingqianHistoryHandler:
             # 获取用户信息
             at_user_id = UserInfoManager.extract_at_user_id(event)
             target_user_id = at_user_id or event.get_sender_id()
-            user_info = UserInfoManager.get_user_info(event, target_user_id)
+            user_info = await UserInfoManager.get_user_info(event, target_user_id)
             
             # 获取历史记录数量限制
             display_count = int(self.plugin.config.get('lqhi_display_count', '10'))

@@ -32,7 +32,7 @@ class JieqianInitializeHandler:
                     yield event.plain_result("❌ 初始化他人记录需要管理员权限。")
                     return
                 target_user_id = at_user_id
-                user_info = UserInfoManager.get_user_info(event, target_user_id)
+                user_info = await UserInfoManager.get_user_info(event, target_user_id)
                 target_name = user_info['card']
             else:
                 target_user_id = event.get_sender_id()

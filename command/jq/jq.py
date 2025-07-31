@@ -26,7 +26,7 @@ class JieqianHandler:
         try:
             # 获取用户信息
             user_id = event.get_sender_id()
-            user_info = UserInfoManager.get_user_info(event)
+            user_info = await UserInfoManager.get_user_info(event)
             
             # 检查人品前置条件
             if not self.plugin._check_jrrp_required(user_id):
@@ -105,7 +105,7 @@ class JieqianHandler:
             # 获取用户信息
             at_user_id = UserInfoManager.extract_at_user_id(event)
             target_user_id = at_user_id or event.get_sender_id()
-            user_info = UserInfoManager.get_user_info(event, target_user_id)
+            user_info = await UserInfoManager.get_user_info(event, target_user_id)
             
             # 检查是否有今日灵签
             today_lingqian = self.lingqian_manager.get_today_lingqian(target_user_id)

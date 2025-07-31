@@ -124,9 +124,16 @@ class CommandHandler:
             return
         elif subcommand.lower() in ["delete", "del"]:
             # 删除历史记录
-            is_confirm = self._has_confirm_param(event)
-            async for result in self.jq_delete_handler.handle_delete(event, is_confirm):
-                yield result
+            # 如果content是数字，传递给删除处理器
+            if content and content.isdigit():
+                async for result in self.jq_delete_handler.handle_delete(event, content):
+                    yield result
+            elif self._has_confirm_param(event):
+                async for result in self.jq_delete_handler.handle_delete(event, "--confirm"):
+                    yield result
+            else:
+                async for result in self.jq_delete_handler.handle_delete(event, ""):
+                    yield result
             return
         elif subcommand.lower() in ["initialize", "init"]:
             # 初始化记录

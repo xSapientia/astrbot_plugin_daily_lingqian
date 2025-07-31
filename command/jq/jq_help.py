@@ -19,55 +19,90 @@ class JieqianHelpHandler:
 🔮 观音解签 - 使用帮助
 
 🌟 基础指令：
-• jq [内容] / jieqian [内容] / 解签 [内容]
-  - 依据内容解读今日灵签
-• jq list / jqlist / jieqian list / jieqianlist
-  - 查看自己今日所有解签
-• jq list @某人 / jqlist @某人
-• jieqian list @某人 / jieqianlist @某人
-  - 查看他人今日所有解签
-• jq list [序号] / jqlist [序号]
-• jieqian list [序号] / jieqianlist [序号]
-  - 查看指定序号的解签内容
+• 显示帮助信息
+    - jq help
+    - jieqian help
+• 依据[解签内容]解读今日灵签
+    - jq [解签内容]
+    - jieqian [解签内容]
+    - 解签 [解签内容]
+• 查看自己或他人今日所有解签, 查看具体解签内容
+    - jq list @某人 [序号]
+    - jqlist @某人 [序号]
+    - jieqian jieqian @某人 [序号]
+    - jieqianjieqian @某人 [序号]
 
 📊 排行榜：
-• jq rank / jqrank
-• jieqian rank / jieqianrank
-  - 查看群内今日解签排行榜
+• 查看群内今日灵签排行榜
+    - jq rank
+    - jqrank
+    - jieqian rank
+    - jieqianrank
+• 查看群内今日解签排行榜
+    - jq rank
+    - jqrank
+    - jieqian rank
+    - jieqianrank
 
 📚 历史记录：
-• jq history / jq hi / jqhistory / jqhi
-• jieqian history / jieqian hi / jieqianhistory / jieqianhi
-  - 查看自己的历史记录
-• jq history @某人 / jq hi @某人
-• jqhistory @某人 / jqhi @某人
-• jieqian history @某人 / jieqian hi @某人
-• jieqianhistory @某人 / jieqianhi @某人
-  - 查看他人的历史记录
+• 查看自己的历史记录
+    - jq history
+    - jq hi
+    - jqhistory
+    - jqhi
+    - jieqian history
+    - jieqian hi
+    - jieqianhistory
+    - jieqianhi
+• 查看他人历史记录
+    - jq history @某人
+    - jq hi @某人
+    - jqhistory @某人
+    - jqhi @某人
+    - jieqian history @某人
+    - jieqian hi @某人
+    - jieqianhistory @某人
+    - jieqianhi @某人
 
 🗑️ 数据管理：
-• jq delete --confirm / jq del --confirm
-• jqdelete --confirm / jqdel --confirm
-• jieqian delete --confirm / jieqian del --confirm
-• jieqiandelete --confirm / jieqiandel --confirm
-  - 删除自己除今日外的历史记录
+• 删除自己指定序号的解签记录
+    - jq delete [序号]
+    - jq del [序号]
+    - jqdelete [序号]
+    - jqdel [序号]
+    - jieqian delete [序号]
+    - jieqian del [序号]
+    - jieqiandelete [序号]
+    - jieqiandel [序号]
 
 ⚙️ 管理员指令：
-• jq initialize --confirm / jq init --confirm
-• jqinitialize --confirm / jqinit --confirm
-• jieqian initialize --confirm / jieqian init --confirm
-• jieqianinitialize --confirm / jieqianinit --confirm
-  - 初始化自己今日记录
-• jq initialize @某人 --confirm / jq init @某人 --confirm
-• jqinitialize @某人 --confirm / jqinit @某人 --confirm
-• jieqian initialize @某人 --confirm / jieqian init @某人 --confirm
-• jieqianinitialize @某人 --confirm / jieqianinit @某人 --confirm
-  - 初始化他人今日记录
-• jq reset --confirm / jq re --confirm
-• jqreset --confirm / jqre --confirm
-• jieqian reset --confirm / jieqian re --confirm
-• jieqianreset --confirm / jieqianre --confirm
-  - 重置所有数据
+• 初始化自己今日记录
+    - jq initialize --confirm
+    - jq init --confirm
+    - jqinitialize --confirm
+    - jqinit --confirm
+    - jieqian initialize --confirm
+    - jieqian init --confirm
+    - jieqianinitialize --confirm
+    - jieqianinit --confirm
+• 初始化他人今日记录
+    - jq initialize @某人 --confirm
+    - jq init @某人 --confirm
+    - jqinitialize @某人 --confirm
+    - jqinit @某人 --confirm
+    - jieqian initialize @某人 --confirm
+    - jieqian init @某人 --confirm
+    - jieqianinitialize @某人 --confirm
+    - jieqianinit @某人 --confirm
+• 重置所有数据
+    - jq reset --confirm
+    - jq re --confirm
+    - jqreset --confirm
+    - jqre --confirm
+    - jieqian reset --confirm
+    - jieqian re --confirm
+    - jieqianreset --confirm
+    - jieqianre --confirm
 
 💡 提示：带 --confirm 的指令需要确认参数才能执行
 """

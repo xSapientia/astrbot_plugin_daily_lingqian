@@ -3,6 +3,7 @@
 获取用户的nickname、card、title等信息
 """
 
+import asyncio
 from astrbot.api.event import AstrMessageEvent
 from astrbot.api import logger
 import astrbot.api.message_components as Comp
@@ -11,7 +12,7 @@ class UserInfoManager:
     """用户信息管理器"""
     
     @staticmethod
-    def get_user_info(event: AstrMessageEvent, target_user_id: str = None):
+    async def get_user_info(event: AstrMessageEvent, target_user_id: str = None):
         """
         获取用户信息
         :param event: 消息事件
@@ -26,7 +27,7 @@ class UserInfoManager:
                 for msg in messages:
                     if isinstance(msg, Comp.At) and str(msg.qq) == str(target_user_id):
                         # 找到@的用户，获取其信息
-                        return UserInfoManager._get_at_user_info(event, target_user_id)
+                        return await UserInfoManager._get_at_user_info(event, target_user_id)
                 
                 # 如果没有找到@消息，返回基本信息
                 return {
@@ -37,7 +38,7 @@ class UserInfoManager:
                 }
             else:
                 # 获取发送者信息
-                return UserInfoManager._get_sender_info(event)
+                return await UserInfoManager._get_sender_info(event)
                 
         except Exception as e:
             logger.error(f"获取用户信息失败: {e}")
@@ -50,7 +51,7 @@ class UserInfoManager:
             }
     
     @staticmethod
-    def _get_sender_info(event: AstrMessageEvent):
+    async def _get_sender_info(event: AstrMessageEvent):
         """获取发送者信息"""
         try:
             user_id = event.get_sender_id()
@@ -63,7 +64,8 @@ class UserInfoManager:
             # 如果是群聊，尝试获取更详细的信息
             if event.get_group_id():
                 try:
-                    group = event.get_group()
+                    await asyncio.sleep(0)  # 确保在异步上下文中
+                    group = await event.get_group()
                     if group and hasattr(group, 'members'):
                         for member in group.members:
                             if str(member.user_id) == str(user_id):
@@ -106,13 +108,14 @@ class UserInfoManager:
             }
     
     @staticmethod
-    def _get_at_user_info(event: AstrMessageEvent, target_user_id: str):
+    async def _get_at_user_info(event: AstrMessageEvent, target_user_id: str):
         """获取@用户的信息"""
         try:
             # 尝试从群成员中获取信息
             if event.get_group_id():
                 try:
-                    group = event.get_group()
+                    await asyncio.sleep(0)  # 确保在异步上下文中
+                    group = await event.get_group()
                     if group and hasattr(group, 'members'):
                         for member in group.members:
                             if str(member.user_id) == str(target_user_id):
