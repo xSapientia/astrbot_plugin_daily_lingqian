@@ -67,11 +67,26 @@ class UserInfoManager:
                     if group and hasattr(group, 'members'):
                         for member in group.members:
                             if str(member.user_id) == str(user_id):
-                                card = getattr(member, 'card', None) or getattr(member, 'nickname', nickname)
+                                # 优先使用群名片(card)，如果没有则使用昵称
+                                member_card = getattr(member, 'card', None)
+                                member_nickname = getattr(member, 'nickname', None)
+                                
+                                if member_card and member_card.strip():
+                                    card = member_card
+                                elif member_nickname and member_nickname.strip():
+                                    card = member_nickname
+                                else:
+                                    card = nickname
+                                
                                 title = getattr(member, 'title', '')
+                                logger.debug(f"获取到群成员信息: user_id={user_id}, card={card}, nickname={member_nickname}")
                                 break
                 except Exception as e:
                     logger.debug(f"获取群成员信息失败: {e}")
+            
+            # 如果还是没有合适的显示名，使用nickname
+            if not card or card.strip() == user_id:
+                card = nickname
             
             return {
                 'user_id': user_id,

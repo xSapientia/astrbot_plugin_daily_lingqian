@@ -209,9 +209,15 @@ class LLMManager:
             # 获取所有人格
             personas = self.context.provider_manager.personas
             for persona in personas:
-                if persona.name == persona_name:
-                    logger.info(f"获取人格成功, {persona.prompt[:10]}...")
-                    return persona.prompt
+                # 处理字典和对象两种格式
+                if isinstance(persona, dict):
+                    if persona.get('name') == persona_name:
+                        logger.info(f"获取人格成功, {persona.get('prompt', '')[:10]}...")
+                        return persona.get('prompt', '')
+                else:
+                    if hasattr(persona, 'name') and persona.name == persona_name:
+                        logger.info(f"获取人格成功, {persona.prompt[:10]}...")
+                        return persona.prompt
             
             logger.warning(f"未找到指定人格: {persona_name}")
             return ""

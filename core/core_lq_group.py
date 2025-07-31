@@ -216,3 +216,30 @@ class GroupManager:
         except Exception as e:
             logger.error(f"筛选群解签排行数据失败: {e}")
             return []
+    
+    def add_jieqian_record(self, user_id: str, content: str, jieqian_result: str):
+        """
+        添加解签记录（这个方法主要是为了兼容，实际记录保存在LLMManager中）
+        :param user_id: 用户ID
+        :param content: 解签内容
+        :param jieqian_result: 解签结果
+        """
+        try:
+            # 这个方法主要是为了兼容，实际的解签记录保存已经在LLMManager中处理了
+            logger.debug(f"解签记录已保存: 用户{user_id}, 内容: {content[:20]}...")
+        except Exception as e:
+            logger.error(f"添加解签记录失败: {e}")
+    
+    def get_user_today_jieqian_list(self, user_id: str) -> list:
+        """
+        获取用户今日解签列表（委托给LLMManager处理）
+        :param user_id: 用户ID
+        :return: 解签列表
+        """
+        try:
+            # 这里需要通过其他方式获取LLMManager实例，或者直接读取文件
+            # 为了简化，暂时返回空列表，让LLMManager处理
+            return []
+        except Exception as e:
+            logger.error(f"获取用户今日解签列表失败: {e}")
+            return []

@@ -117,7 +117,7 @@ class JieqianHandler:
                 return
             
             # 获取今日解签列表
-            jieqian_list = self.group_manager.get_user_today_jieqian_list(target_user_id)
+            jieqian_list = self.llm_manager.get_user_today_jieqian_list(target_user_id)
             
             if not jieqian_list:
                 template = self.plugin.config.get('jieqian_config', {}).get('tip_template', '「{card}」今日还未解签')
