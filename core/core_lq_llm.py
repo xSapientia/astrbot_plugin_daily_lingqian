@@ -168,7 +168,7 @@ class LLMManager:
             
             # 根据用户ID和灵签数据构建完整的解签提示词
             full_prompt = await self._build_detailed_jieqian_prompt(
-                persona_prompt, jieqian_prompt, lingqian_data, content
+                persona_prompt, jieqian_prompt, lingqian_data, content, event
             )
             
             # 调用LLM - 使用人格prompt和解签提示词，不使用system_prompt避免兼容性问题
@@ -200,9 +200,14 @@ class LLMManager:
             return "解签过程中发生错误，请稍后重试。"
     
     async def _build_detailed_jieqian_prompt(self, persona_prompt: str, jieqian_prompt: str, 
-                                           lingqian_data: dict, content: str) -> str:
+                                           lingqian_data: dict, content: str, event: AstrMessageEvent) -> str:
         """构建详细的解签提示词 - 参考GitHub完美方案"""
         try:
+            # 获取用户信息
+            from .core_lq_userinfo import UserInfoManager
+            user_info = await UserInfoManager.get_user_info(event)
+            user_name = user_info.get('card', user_info.get('nickname', '用户'))
+            
             # 读取具体的灵签内容
             qianxu = lingqian_data.get('qianxu', 0)
             detailed_lingqian = await self._load_lingqian_json(qianxu)
@@ -214,8 +219,9 @@ class LLMManager:
             if persona_prompt:
                 full_prompt += f"{persona_prompt}\n\n"
             
-            # 添加解签提示词
-            full_prompt += f"{jieqian_prompt}\n\n"
+            # 添加解签提示词，并插入用户名称
+            formatted_jieqian_prompt = jieqian_prompt.replace("{user_id}", user_name)
+            full_prompt += f"{formatted_jieqian_prompt}\n\n"
             
             # 添加具体的灵签信息
             if detailed_lingqian:
@@ -244,8 +250,8 @@ class LLMManager:
                     full_prompt += f"灵签内容：\n{lingqian_data['内容']}\n\n"
             
             # 添加用户问题
-            full_prompt += f"用户问题：{content}\n\n"
-            full_prompt += "请根据上述灵签信息，结合用户的问题，提供智慧的解签和人生指导。"
+            full_prompt += f"用户「{user_name}」的问题：{content}\n\n"
+            full_prompt += f"请根据上述灵签信息，结合用户「{user_name}」的问题，提供智慧的解签和人生指导。在回答中请称呼用户为「{user_name}」。"
             
             return full_prompt
             

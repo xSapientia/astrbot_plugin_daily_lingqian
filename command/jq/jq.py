@@ -133,8 +133,8 @@ class JieqianHandler:
                     item = jieqian_list[index]
                     variables = self.plugin._build_variables(event, user_info, today_lingqian)
                     variables.update({
-                        'content': item['content'],
-                        'jieqian': item['jieqian']
+                        'content': item.get('content', ''),
+                        'jieqian': item.get('result', item.get('jieqian', ''))
                     })
                     
                     template = self.plugin.config.get('jieqian_config', {}).get('template', 
