@@ -201,7 +201,7 @@
   },
   "lq_pics_version": {
     "description": "选择图片版本",
-    "type": "options",
+    "type": "string",
     "hint": "选择灵签图片的版本",
     "options": ["100_default"],
     "default": "100_default"
