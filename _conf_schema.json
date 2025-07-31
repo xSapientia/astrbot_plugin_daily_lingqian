@@ -23,12 +23,6 @@
     "hint": "启用后必须先检测今日运势才能使用灵签功能",
     "default": false
   },
-  "lingqian_jrrptip_template": {
-    "description": "当不满足前置条件时的提示文本模板",
-    "type": "text",
-    "hint": "支持变量: {card}, {nickname}, {user_id}",
-    "default": "「{card}」今日还未检测人品运势"
-  },
   "lingqian_ratefix": {
     "description": "是否开启概率调整功能",
     "type": "bool",
