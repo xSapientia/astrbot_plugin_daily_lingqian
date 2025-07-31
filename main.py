@@ -53,6 +53,9 @@ class DailyLingqianPlugin(Star):
         super().__init__(context)
         self.config = config
         
+        # 动态更新图片版本选项
+        self._update_pics_version_options()
+        
         # 初始化管理器
         self.lingqian_manager = DailyLingqianManager()
         self.llm_manager = LLMManager(context, config)
@@ -84,6 +87,49 @@ class DailyLingqianPlugin(Star):
     async def initialize(self):
         """异步初始化方法"""
         pass
+    
+    def _update_pics_version_options(self):
+        """动态更新图片版本选项"""
+        try:
+            resource_path = os.path.join(os.path.dirname(__file__), "resource")
+            if not os.path.exists(resource_path):
+                logger.warning("资源目录不存在，创建默认目录")
+                os.makedirs(resource_path, exist_ok=True)
+                return
+            
+            # 读取resource目录下的所有文件夹
+            folders = []
+            for item in os.listdir(resource_path):
+                item_path = os.path.join(resource_path, item)
+                if os.path.isdir(item_path):
+                    folders.append(item)
+            
+            if not folders:
+                folders = ["100_default"]  # 默认选项
+                logger.warning("资源目录为空，使用默认选项")
+            
+            # 读取现有的配置模式
+            schema_path = os.path.join(os.path.dirname(__file__), "_conf_schema.json")
+            if os.path.exists(schema_path):
+                with open(schema_path, 'r', encoding='utf-8') as f:
+                    schema = json.load(f)
+                
+                # 更新选项
+                if "lq_pics_version" in schema:
+                    schema["lq_pics_version"]["options"] = sorted(folders)
+                    
+                    # 写回文件
+                    with open(schema_path, 'w', encoding='utf-8') as f:
+                        json.dump(schema, f, ensure_ascii=False, indent=2)
+                    
+                    logger.info(f"已更新图片版本选项: {folders}")
+                else:
+                    logger.warning("配置模式中未找到 lq_pics_version 选项")
+            else:
+                logger.warning("配置模式文件不存在")
+                
+        except Exception as e:
+            logger.error(f"更新图片版本选项失败: {e}")
     
     def _check_whitelist(self, event: AstrMessageEvent) -> bool:
         """检查白名单权限"""
@@ -241,11 +287,17 @@ class DailyLingqianPlugin(Star):
                 'gongwei': lingqian_data.get('gongwei', ''),
             })
             
-            # 添加图片路径
+            # 添加图片路径 - 构建格式：./resource/{lq_pics_version}/{qianxu}.png
             pics_version = self.config.get('lq_pics_version', '100_default')
             if lingqian_data.get('qianxu'):
-                image_path = self.lingqian_manager.get_image_path(lingqian_data['qianxu'], pics_version)
-                variables['lqpic'] = image_path
+                plugin_dir = os.path.dirname(__file__)
+                image_path = os.path.join(plugin_dir, "resource", pics_version, f"{lingqian_data['qianxu']}.png")
+                # 确保路径存在，如果不存在则使用占位符
+                if os.path.exists(image_path):
+                    variables['lqpic'] = image_path
+                else:
+                    logger.warning(f"灵签图片不存在: {image_path}")
+                    variables['lqpic'] = f"[图片不存在: {pics_version}/{lingqian_data['qianxu']}.png]"
             else:
                 variables['lqpic'] = ""
         

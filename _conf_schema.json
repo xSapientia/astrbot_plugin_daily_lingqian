@@ -197,7 +197,10 @@
     "description": "选择图片版本",
     "type": "string",
     "hint": "选择灵签图片的版本",
-    "options": ["100_default"],
+    "options": [
+      "100_default",
+      "100_v2"
+    ],
     "default": "100_default"
   },
   "lqhi_display_count": {

@@ -62,21 +62,27 @@ class LingqianHandler:
             # 抽取灵签
             lingqian_data = self.lingqian_manager.draw_lingqian(user_id, fortune_adjustment)
             
-            # 发送图片和文字
+            # 构建变量
+            variables = self.plugin._build_variables(event, user_info, lingqian_data)
+            
+            # 发送图片
             if lingqian_data.get('qianxu'):
                 pics_version = self.plugin.config.get('lq_pics_version', '100_default')
-                image_path = self.lingqian_manager.get_image_path(lingqian_data['qianxu'], pics_version)
+                plugin_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                image_path = os.path.join(plugin_dir, "resource", pics_version, f"{lingqian_data['qianxu']}.png")
                 
                 if os.path.exists(image_path):
                     yield event.image_result(image_path)
                 else:
-                    # 如果图片不存在，发送文字信息
-                    info_text = f"第{lingqian_data.get('qianxu_chinese', '')}签 {lingqian_data.get('qianming', '')}\n吉凶: {lingqian_data.get('jixiong', '')}\n宫位: {lingqian_data.get('gongwei', '')}"
-                    yield event.plain_result(info_text)
-            else:
-                # 构建变量和模板
-                variables = self.plugin._build_variables(event, user_info, lingqian_data)
-                template = self.plugin.config.get('lingqian_config', {}).get('draw_template', '-----「{card}」今日灵签-----\n{lqpic}')
+                    logger.warning(f"灵签图片不存在: {image_path}")
+            
+            # 发送文字模板（如果配置了的话）
+            template = self.plugin.config.get('lingqian_config', {}).get('draw_template', '-----「{card}」今日灵签-----')
+            # 如果模板中包含{lqpic}，则移除它（因为图片已经单独发送了）
+            if '{lqpic}' in template:
+                template = template.replace('{lqpic}', '').strip()
+            
+            if template:  # 只有在有文字内容时才发送
                 message = self.plugin._format_template(template, variables)
                 yield event.plain_result(message)
                 
@@ -101,19 +107,24 @@ class LingqianHandler:
             # 构建变量
             variables = self.plugin._build_variables(event, user_info, lingqian_data)
             
-            # 发送图片和文字
+            # 发送图片
             if lingqian_data.get('qianxu'):
                 pics_version = self.plugin.config.get('lq_pics_version', '100_default')
-                image_path = self.lingqian_manager.get_image_path(lingqian_data['qianxu'], pics_version)
+                plugin_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                image_path = os.path.join(plugin_dir, "resource", pics_version, f"{lingqian_data['qianxu']}.png")
                 
                 if os.path.exists(image_path):
                     yield event.image_result(image_path)
                 else:
-                    # 如果图片不存在，发送文字信息
-                    info_text = f"第{lingqian_data.get('qianxu_chinese', '')}签 {lingqian_data.get('qianming', '')}\n吉凶: {lingqian_data.get('jixiong', '')}\n宫位: {lingqian_data.get('gongwei', '')}"
-                    yield event.plain_result(info_text)
-            else:
-                template = self.plugin.config.get('lingqian_config', {}).get('query_template', '-----「{card}」今日灵签-----\n{lqpic}')
+                    logger.warning(f"灵签图片不存在: {image_path}")
+            
+            # 发送文字模板（如果配置了的话）
+            template = self.plugin.config.get('lingqian_config', {}).get('query_template', '-----「{card}」今日灵签-----')
+            # 如果模板中包含{lqpic}，则移除它（因为图片已经单独发送了）
+            if '{lqpic}' in template:
+                template = template.replace('{lqpic}', '').strip()
+            
+            if template:  # 只有在有文字内容时才发送
                 message = self.plugin._format_template(template, variables)
                 yield event.plain_result(message)
                 
