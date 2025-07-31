@@ -64,9 +64,17 @@ class JieqianHandler:
             
             try:
                 # 调用LLM进行解签
-                jieqian_result = await self.llm_manager.get_jieqian_result(user_id, content, today_lingqian)
+                jieqian_result = await self.llm_manager.process_jieqian(event, user_id, today_lingqian, content)
                 
-                # 保存解签记录
+                if jieqian_result is None:
+                    # 正在处理中
+                    template = self.plugin.config.get('jieqian_config', {}).get('ing_template', '已经在为「{card}」解签中...')
+                    variables = self.plugin._build_variables(event, user_info)
+                    message = self.plugin._format_template(template, variables)
+                    yield event.plain_result(message)
+                    return
+                
+                # 保存解签记录到群组管理器
                 self.group_manager.add_jieqian_record(user_id, content, jieqian_result)
                 
                 # 构建解签结果消息

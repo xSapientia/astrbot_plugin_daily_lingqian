@@ -136,7 +136,7 @@ class DailyLingqianPlugin(Star):
         try:
             fortune_path = "data/plugin_data/astrbot_plugin_daily_fortune/fortune_history.json"
             if os.path.exists(fortune_path):
-                with open(fortune_path, 'r', encoding='utf-8') as f:
+                with open(fortune_path, 'r', encoding='utf-8-sig') as f:
                     return json.load(f)
             return {}
         except Exception as e:
@@ -148,7 +148,7 @@ class DailyLingqianPlugin(Star):
         try:
             config_path = "data/config/astrbot_plugin_daily_fortune_config.json"
             if os.path.exists(config_path):
-                with open(config_path, 'r', encoding='utf-8') as f:
+                with open(config_path, 'r', encoding='utf-8-sig') as f:
                     fortune_config = json.load(f)
                     ranges_jrrp = fortune_config.get('ranges_jrrp', '')
                     ranges_fortune = fortune_config.get('ranges_fortune', '')
@@ -236,11 +236,11 @@ class DailyLingqianPlugin(Star):
                 'gongwei': lingqian_data.get('gongwei', ''),
             })
             
-            # 添加图片占位符
+            # 添加图片路径
             pics_version = self.config.get('lq_pics_version', '100_default')
             if lingqian_data.get('qianxu'):
                 image_path = self.lingqian_manager.get_image_path(lingqian_data['qianxu'], pics_version)
-                variables['lqpic'] = f"[CQ:image,file={image_path}]"
+                variables['lqpic'] = image_path
             else:
                 variables['lqpic'] = ""
         
