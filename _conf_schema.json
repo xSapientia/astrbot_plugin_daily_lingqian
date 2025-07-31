@@ -111,13 +111,13 @@
         "description": "开始解签提示模板",
         "type": "text",
         "hint": "支持变量: {card}, {nickname}, {user_id}",
-        "default": "开始为「{card}」解签..."
+        "default": "命运的丝线汇聚, {card}, 你的困惑即将解开, 正在窥视中..."
       },
       "ing_template": {
         "description": "解签中提示模板",
         "type": "text",
         "hint": "支持变量: {card}, {nickname}, {user_id}",
-        "default": "已经在为「{card}」解签中..."
+        "default": "已经在努力为 {card} 解签了哦~"
       },
       "history_content": {
         "description": "解签历史内容显示模板",
@@ -189,7 +189,7 @@
         "description": "解签过程与结果提示词",
         "type": "text",
         "hint": "定义解签时的解读过程和结果生成方式",
-        "default": "请根据{user_id}今日抽取的灵签, 对其提出的问题进行解签, 100字以内"
+        "default": "请根据{user_id}今日抽取的灵签, 对其提出的问题进行解签, 50字以内"
       }
     }
   },

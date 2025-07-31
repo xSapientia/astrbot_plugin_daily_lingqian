@@ -47,14 +47,14 @@ class JieqianHandler:
             
             # 检查是否正在解签中
             if user_id in processing_users:
-                template = self.plugin.config.get('jieqian_config', {}).get('ing_template', '已经在为「{card}」解签中...')
+                template = self.plugin.config.get('jieqian_config', {}).get('ing_template', '已经在努力为「 {card} 」解签了哦~')
                 variables = self.plugin._build_variables(event, user_info)
                 message = self.plugin._format_template(template, variables)
                 yield event.plain_result(message)
                 return
             
             # 发送开始解签提示
-            begin_template = self.plugin.config.get('jieqian_config', {}).get('begin_template', '开始为「{card}」解签...')
+            begin_template = self.plugin.config.get('jieqian_config', {}).get('begin_template', '命运的丝线汇聚, {card}, 你的困惑即将解开, 正在窥视中...')
             variables = self.plugin._build_variables(event, user_info)
             begin_message = self.plugin._format_template(begin_template, variables)
             yield event.plain_result(begin_message)
@@ -68,7 +68,7 @@ class JieqianHandler:
                 
                 if jieqian_result is None:
                     # 正在处理中
-                    template = self.plugin.config.get('jieqian_config', {}).get('ing_template', '已经在为「{card}」解签中...')
+                    template = self.plugin.config.get('jieqian_config', {}).get('ing_template', '已经在努力为「 {card} 」解签了哦~')
                     variables = self.plugin._build_variables(event, user_info)
                     message = self.plugin._format_template(template, variables)
                     yield event.plain_result(message)
