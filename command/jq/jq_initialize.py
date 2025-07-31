@@ -14,7 +14,7 @@ class JieqianInitializeHandler:
     
     def __init__(self, plugin_instance):
         self.plugin = plugin_instance
-        self.permission_manager = PermissionManager(plugin_instance.context)
+        self.permission_manager = PermissionManager()
     
     async def handle_initialize(self, event: AstrMessageEvent, confirm: bool = False):
         """处理初始化今日记录"""

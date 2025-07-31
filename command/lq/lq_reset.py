@@ -13,7 +13,7 @@ class LingqianResetHandler:
     def __init__(self, plugin_instance):
         self.plugin = plugin_instance
         self.lingqian_manager = plugin_instance.lingqian_manager
-        self.permission_manager = PermissionManager(plugin_instance.context)
+        self.permission_manager = PermissionManager()
     
     async def handle_reset(self, event: AstrMessageEvent, confirm: bool = False):
         """处理重置所有数据"""

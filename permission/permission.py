@@ -35,6 +35,7 @@ class PermissionManager:
         async def wrapper(self, event: AstrMessageEvent, *args, **kwargs):
             if not PermissionManager.check_admin_permission(event):
                 yield event.plain_result("❌ 此指令仅限管理员使用")
-                return
-            return await func(self, event, *args, **kwargs)
+            else:
+                async for result in func(self, event, *args, **kwargs):
+                    yield result
         return wrapper
