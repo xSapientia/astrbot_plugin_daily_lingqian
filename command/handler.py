@@ -156,8 +156,10 @@ class CommandHandler:
         if subcommand:
             content = subcommand + (" " + content if content else "")
         
+        # 如果没有提供内容，进行签文自身拆解
         if not content:
-            yield event.plain_result("❌ 请提供要解签的内容，例如：jq 我想知道工作运势")
+            async for result in self.jq_handler.handle_jieqian_self(event):
+                yield result
             return
         
         async for result in self.jq_handler.handle_jieqian(event, content):

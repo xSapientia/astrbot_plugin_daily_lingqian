@@ -110,6 +110,40 @@ class LLMManager:
             self.set_user_processing(user_id, False)
             return "解签过程中发生错误，请稍后重试。"
     
+    async def process_jieqian_self(self, event: AstrMessageEvent, user_id: str, lingqian_data: dict) -> str:
+        """
+        处理签文自身拆解请求（当用户没有提供具体问题时）
+        :param event: 消息事件
+        :param user_id: 用户ID
+        :param lingqian_data: 灵签数据
+        :return: 签文拆解结果
+        """
+        try:
+            # 检查是否正在解签中
+            if self.is_user_processing(user_id):
+                return None  # 返回None表示正在处理中
+            
+            # 设置处理状态
+            self.set_user_processing(user_id, True)
+            
+            try:
+                # 调用LLM进行签文拆解
+                jieqian_result = await self._call_llm_for_jieqian_self(event, lingqian_data)
+                
+                # 保存解签记录（使用特殊标记表示签文拆解）
+                await self._save_jieqian_record(user_id, "[签文拆解]", jieqian_result)
+                
+                return jieqian_result
+                
+            finally:
+                # 解除处理状态
+                self.set_user_processing(user_id, False)
+                
+        except Exception as e:
+            logger.error(f"处理签文拆解请求失败: {e}")
+            self.set_user_processing(user_id, False)
+            return "签文拆解过程中发生错误，请稍后重试。"
+    
     async def _call_llm_for_jieqian(self, event: AstrMessageEvent, lingqian_data: dict, content: str) -> str:
         """调用LLM进行解签 - 参考GitHub完美方案"""
         try:
@@ -198,6 +232,161 @@ class LLMManager:
         except Exception as e:
             logger.error(f"[LLMManager] LLM解签失败: {e}")
             return "解签过程中发生错误，请稍后重试。"
+    
+    async def _call_llm_for_jieqian_self(self, event: AstrMessageEvent, lingqian_data: dict) -> str:
+        """调用LLM进行签文自身拆解"""
+        try:
+            # 获取Provider - 使用优先级:插件配置的provider_id>第三方api>默认provider
+            provider = None
+            provider_id = self.config.get('jieqian_config', {}).get('provider_id', '').strip()
+            
+            # 1. 优先使用插件配置的provider_id
+            if provider_id:
+                provider = self.context.get_provider_by_id(provider_id)
+                if provider:
+                    logger.debug(f"[LLMManager] 使用指定provider: {provider_id}")
+                else:
+                    logger.warning(f"[LLMManager] 指定的provider_id不存在: {provider_id}")
+            
+            # 2. 如果没有指定provider或指定的不存在，使用默认provider
+            if not provider:
+                provider = self.context.get_using_provider()
+                if provider:
+                    logger.debug("[LLMManager] 使用默认provider")
+            
+            if not provider:
+                logger.warning("[LLMManager] 没有可用的LLM提供商")
+                return "当前无法连接到AI服务，请稍后重试。"
+            
+            # 获取人格prompt - 使用优先级:插件配置的persona>默认persona
+            persona_prompt = ""
+            persona_name = self.config.get('jieqian_config', {}).get('persona', '').strip()
+            if persona_name:
+                # 使用指定的人格
+                personas = self.context.provider_manager.personas
+                for p in personas:
+                    if p.get('name') == persona_name:
+                        persona_prompt = p.get('prompt', '')
+                        logger.debug(f"[LLMManager] 使用指定人格: {persona_name}")
+                        break
+                else:
+                    logger.warning(f"[LLMManager] 未找到指定人格: {persona_name}")
+            
+            if not persona_prompt:
+                # 使用默认人格
+                default_persona = self.context.provider_manager.selected_default_persona
+                if default_persona and default_persona.get("name"):
+                    default_persona_name = default_persona["name"]
+                    personas = self.context.provider_manager.personas
+                    for p in personas:
+                        if p.get('name') == default_persona_name:
+                            persona_prompt = p.get('prompt', '')
+                            logger.debug(f"[LLMManager] 使用默认人格: {default_persona_name}")
+                            break
+            
+            # 获取签文拆解提示词模板
+            jieqian_self_prompt = self.config.get('jieqian_config', {}).get('jieqian_self_prompt', '')
+            if not jieqian_self_prompt:
+                jieqian_self_prompt = "请对{user_id}今日抽取的灵签进行详细的翻译和拆解，包括签文含义、诗句解读、人生指导等，让用户更好地理解这支灵签的寓意，200字以内"
+            
+            # 根据用户ID和灵签数据构建完整的签文拆解提示词
+            full_prompt = await self._build_detailed_jieqian_self_prompt(
+                persona_prompt, jieqian_self_prompt, lingqian_data, event
+            )
+            
+            # 调用LLM - 使用人格prompt和签文拆解提示词，不使用system_prompt避免兼容性问题
+            response = await asyncio.wait_for(
+                provider.text_chat(
+                    prompt=full_prompt,
+                    session_id=None,  # 不使用会话管理
+                    contexts=[],  # 不使用历史上下文
+                    image_urls=[],  # 不传递图片
+                    func_tool=None,  # 不使用函数工具
+                    system_prompt=""  # 不使用额外的system_prompt，人格已经在prompt中
+                ),
+                timeout=60.0  # 设置超时时间
+            )
+            
+            if response and response.completion_text:
+                content = response.completion_text.strip()
+                logger.debug(f"[LLMManager] LLM签文拆解回复: {content[:50]}...")
+                return content
+            else:
+                logger.warning("[LLMManager] LLM返回空响应")
+                return "签文拆解过程中AI未能提供回复，请稍后重试。"
+                
+        except asyncio.TimeoutError:
+            logger.error("[LLMManager] LLM签文拆解超时")
+            return "签文拆解过程中AI响应超时，请稍后重试。"
+        except Exception as e:
+            logger.error(f"[LLMManager] LLM签文拆解失败: {e}")
+            return "签文拆解过程中发生错误，请稍后重试。"
+    
+    async def _build_detailed_jieqian_self_prompt(self, persona_prompt: str, jieqian_self_prompt: str, 
+                                                lingqian_data: dict, event: AstrMessageEvent) -> str:
+        """构建详细的签文拆解提示词"""
+        try:
+            # 获取用户信息
+            from .core_lq_userinfo import UserInfoManager
+            user_info = await UserInfoManager.get_user_info(event)
+            user_name = user_info.get('card', user_info.get('nickname', '用户'))
+            
+            # 读取具体的灵签内容
+            qianxu = lingqian_data.get('qianxu', 0)
+            detailed_lingqian = await self._load_lingqian_json(qianxu)
+            
+            # 构建完整的prompt
+            full_prompt = ""
+            
+            # 添加人格设定
+            if persona_prompt:
+                full_prompt += f"{persona_prompt}\n\n"
+            
+            # 添加签文拆解提示词，并插入用户名称
+            formatted_jieqian_self_prompt = jieqian_self_prompt.replace("{user_id}", user_name)
+            full_prompt += f"{formatted_jieqian_self_prompt}\n\n"
+            
+            # 添加具体的灵签信息
+            if detailed_lingqian:
+                full_prompt += f"「{user_name}」今日抽取的观音灵签信息：\n"
+                full_prompt += f"签序：{detailed_lingqian.get('签序', qianxu)}\n"
+                full_prompt += f"签名：{detailed_lingqian.get('签名', '')}\n"
+                full_prompt += f"吉凶：{detailed_lingqian.get('吉凶', '')}\n"
+                full_prompt += f"宫位：{detailed_lingqian.get('宫位', '')}\n\n"
+                
+                # 添加详细内容
+                if '内容' in detailed_lingqian:
+                    full_prompt += f"灵签内容：\n{detailed_lingqian['内容']}\n\n"
+                
+                # 添加诗句等其他信息
+                for key in ['诗曰', '解曰', '圣意', '东坡解']:
+                    if key in detailed_lingqian:
+                        full_prompt += f"{key}：{detailed_lingqian[key]}\n"
+                
+                full_prompt += "\n"
+            else:
+                # 如果无法读取详细信息，使用基础信息
+                full_prompt += f"「{user_name}」今日抽取的观音灵签信息：\n"
+                full_prompt += f"签序：{lingqian_data.get('qianxu_chinese', qianxu)}\n"
+                full_prompt += f"签名：{lingqian_data.get('qianming', '')}\n"
+                full_prompt += f"吉凶：{lingqian_data.get('jixiong', '')}\n"
+                full_prompt += f"宫位：{lingqian_data.get('gongwei', '')}\n"
+                if '内容' in lingqian_data:
+                    full_prompt += f"灵签内容：\n{lingqian_data['内容']}\n\n"
+            
+            # 添加结尾指导
+            full_prompt += f"请为「{user_name}」详细解读这支灵签的深层含义，包括古文翻译、寓意解析、人生指导等。在回答中请称呼用户为「{user_name}」。"
+            
+            return full_prompt
+            
+        except Exception as e:
+            logger.error(f"构建详细签文拆解提示词失败: {e}")
+            # 降级处理
+            fallback_prompt = f"请对以下灵签进行详细的翻译和拆解：\n"
+            if lingqian_data:
+                fallback_prompt += f"灵签信息：{lingqian_data}\n"
+                fallback_prompt += f"请包括签文含义、诗句解读、人生指导等内容。"
+            return fallback_prompt
     
     async def _build_detailed_jieqian_prompt(self, persona_prompt: str, jieqian_prompt: str, 
                                            lingqian_data: dict, content: str, event: AstrMessageEvent) -> str:

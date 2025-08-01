@@ -99,6 +99,85 @@ class JieqianHandler:
             processing_users.discard(user_id)
             yield event.plain_result("解签时发生错误，请稍后重试。")
     
+    async def handle_jieqian_self(self, event: AstrMessageEvent):
+        """处理签文自身拆解（当用户没有提供具体问题时）"""
+        try:
+            # 获取用户信息
+            user_id = event.get_sender_id()
+            user_info = await UserInfoManager.get_user_info(event)
+            
+            # 检查人品前置条件
+            if not self.plugin._check_jrrp_required(user_id):
+                template = self.plugin.config.get('lingqian_jrrptip_template', '「{card}」今日还未检测人品运势')
+                variables = self.plugin._build_variables(event, user_info)
+                message = self.plugin._format_template(template, variables)
+                yield event.plain_result(message)
+                return
+            
+            # 检查是否有今日灵签
+            today_lingqian = self.lingqian_manager.get_today_lingqian(user_id)
+            if not today_lingqian:
+                template = self.plugin.config.get('lingqian_config', {}).get('drawtip_template', '「{card}」今日还未抽取灵签')
+                variables = self.plugin._build_variables(event, user_info)
+                message = self.plugin._format_template(template, variables)
+                yield event.plain_result(message)
+                return
+            
+            # 检查是否正在解签中
+            if user_id in processing_users:
+                template = self.plugin.config.get('jieqian_config', {}).get('ing_template', '已经在努力为「 {card} 」解签了哦~')
+                variables = self.plugin._build_variables(event, user_info)
+                message = self.plugin._format_template(template, variables)
+                yield event.plain_result(message)
+                return
+            
+            # 发送开始解签提示
+            begin_template = self.plugin.config.get('jieqian_config', {}).get('begin_template', '命运的丝线汇聚, {card}, 你的困惑即将解开, 正在窥视中...')
+            variables = self.plugin._build_variables(event, user_info)
+            begin_message = self.plugin._format_template(begin_template, variables)
+            yield event.plain_result(begin_message)
+            
+            # 标记用户为处理中
+            processing_users.add(user_id)
+            
+            try:
+                # 调用LLM进行签文拆解
+                jieqian_result = await self.llm_manager.process_jieqian_self(event, user_id, today_lingqian)
+                
+                if jieqian_result is None:
+                    # 正在处理中
+                    template = self.plugin.config.get('jieqian_config', {}).get('ing_template', '已经在努力为「 {card} 」解签了哦~')
+                    variables = self.plugin._build_variables(event, user_info)
+                    message = self.plugin._format_template(template, variables)
+                    yield event.plain_result(message)
+                    return
+                
+                # 保存解签记录到群组管理器（使用特殊标记表示是签文拆解）
+                self.group_manager.add_jieqian_record(user_id, "[签文拆解]", jieqian_result)
+                
+                # 构建解签结果消息（使用特殊模板用于签文拆解）
+                variables = self.plugin._build_variables(event, user_info, today_lingqian)
+                variables.update({
+                    'content': '签文拆解',
+                    'jieqian': jieqian_result
+                })
+                
+                # 使用默认解签模板
+                template = self.plugin.config.get('jieqian_config', {}).get('template', 
+                    '-----「{card}」解签-----\n第 {qianxu} 签 {qianming}\n吉凶: {jixiong}\n宫位: {gongwei}\n---\n问: {content}\n---\n解:\n{jieqian}')
+                message = self.plugin._format_template(template, variables)
+                
+                yield event.plain_result(message)
+                
+            finally:
+                # 移除处理标记
+                processing_users.discard(user_id)
+            
+        except Exception as e:
+            logger.error(f"处理签文拆解失败: {e}")
+            processing_users.discard(user_id)
+            yield event.plain_result("签文拆解时发生错误，请稍后重试。")
+    
     async def handle_list(self, event: AstrMessageEvent, param: str = ""):
         """处理解签列表查询"""
         try:
