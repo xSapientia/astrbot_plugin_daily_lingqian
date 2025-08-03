@@ -104,19 +104,19 @@
       "tip_template": {
         "description": "未解签时的提示模板",
         "type": "text",
-        "hint": "支持变量: {card}, {nickname}, {user_id}",
+        "hint": "支持变量: {card}, {nickname}, {user_id}, {jqhi_total}, {jqhi_total_today}",
         "default": "「{card}」今日还未解签"
       },
       "begin_template": {
         "description": "开始解签提示模板",
         "type": "text",
-        "hint": "支持变量: {card}, {nickname}, {user_id}",
+        "hint": "支持变量: {card}, {nickname}, {user_id}, {jqhi_total}, {jqhi_total_today}",
         "default": "命运的丝线汇聚, {card}, 你的困惑即将解开, 正在窥视中..."
       },
       "ing_template": {
         "description": "解签中提示模板",
         "type": "text",
-        "hint": "支持变量: {card}, {nickname}, {user_id}",
+        "hint": "支持变量: {card}, {nickname}, {user_id}, {jqhi_total}, {jqhi_total_today}",
         "default": "已经在努力为 {card} 解签了哦~"
       },
       "history_content": {
@@ -128,19 +128,19 @@
       "history_template": {
         "description": "个人解签历史模板",
         "type": "text",
-        "hint": "支持变量: {card}, {jqhi_display}, {jqhi_total}, {jqhi_max}, {jqhi_avg}, {jqhi_min}, {jieqian_history_content}",
-        "default": "📚 {card} 的解签历史记录\n[显示 {jqhi_display}/{jqhi_total}]\n{jieqian_history_content}\n\n📊 统计信息:\n解签总数: {jqhi_total}\n最大日解签数: {jqhi_max}\n平均日解签数: {jqhi_avg}\n最小日解签数: {jqhi_min}"
+        "hint": "支持变量: {card}, {jqhi_display}, {jqhi_total}, {jqhi_max}, {jqhi_avg}, {jqhi_min}, {jieqian_history_content}, {jqhi_total_today}今日解签总数",
+        "default": "📚 {card} 的解签历史记录\n[显示 {jqhi_display}/{jqhi_total_today}]\n{jieqian_history_content}\n\n📊 统计信息:\n解签总数: {jqhi_total}\n最大日解签数: {jqhi_max}\n平均日解签数: {jqhi_avg}\n最小日解签数: {jqhi_min}"
       },
       "template": {
         "description": "解签模板",
         "type": "text",
-        "hint": "支持变量: {card}, {qianxu}, {qianming}, {jixiong}, {gongwei}, {content}, {jieqian}",
-        "default": "-----「{card}」解签-----\n第 {qianxu} 签 {qianming}\n吉凶: {jixiong}\n宫位: {gongwei}\n---\n问: {content}\n---\n解:\n{jieqian}"
+        "hint": "支持变量: {card}, {qianxu}, {qianming}, {jixiong}, {gongwei}, {content}, {jieqian}, {jqhi_total}, {jqhi_total_today}",
+        "default": "-----「{card}」解签-----\n第{qianxu}签 {qianming}\n吉凶: {jixiong}\n宫位: {gongwei}\n---\n问: {content}\n---\n解:\n{jieqian}"
       },
       "list_template": {
         "description": "个人当日解签列表模板",
         "type": "text",
-        "hint": "支持变量: {card}, {qianxu}, {qianming}, {jixiong}, {gongwei}, 支持{jqxh}.问: {content}格式",
+        "hint": "支持变量: {card}, {qianxu}, {qianming}, {jixiong}, {gongwei}, {jqxh}, {content}, {jqhi_total}, {jqhi_total_today}",
         "default": "-----「{card}」今日解签列表-----\n第 {qianxu} 签 {qianming}\n吉凶: {jixiong}\n宫位: {gongwei}\n---\n{jqxh}.问: {content}\n{jqxh}.问: {content}\n{jqxh}.问: {content}"
       },
       "ranks_content": {
@@ -152,7 +152,7 @@
       "ranks_template": {
         "description": "群聊当日解签排行模板",
         "type": "text",
-        "hint": "支持变量: {date}, {jieqian_ranks}",
+        "hint": "支持变量: {date}, {jieqian_ranks}, {jqhi_total}, {jqhi_total_today}",
         "default": "📊【本群今日解签榜】{date}\n━━━━━━━━━━━━━━━\n{jieqian_ranks}"
       },
       "persona": {
@@ -189,11 +189,11 @@
         "description": "解签过程与结果提示词",
         "type": "text",
         "hint": "定义解签时的解读过程和结果生成方式",
-        "default": "请根据{user_id}今日抽取的灵签，对其提出的问题进行解签。要求输出格式如下：\n\n#灵签解读\n针对{user_id}的问题，这支灵签的指导是：[核心建议用方括号标出] 详细解释内容\n\n#具体建议\n[行动指导] 具体应该怎么做\n[注意事项] 需要注意什么\n[时机把握] 何时行动最佳\n\n注意：禁止使用markdown格式如**或*，禁止使用数字序号，必须使用#开头的标题和[]包围关键词，内容控制在100字以内"
+        "default": "请根据{user_id}今日抽取的灵签，对其提出的问题进行解签。要求输出格式如下：\n\n#灵签解读\n针对{user_id}的问题，这支灵签的指导是：[核心建议用方括号标出] 详细解释内容\n\n#具体建议\n[行动指导] 具体应该怎么做\n[注意事项] 需要注意什么\n[时机把握] 何时行动最佳\n\n注意：禁止使用markdown格式如**或*，禁止使用数字序号，必须使用#开头的标题和[]包围关键词，内容控制在50字以内"
       },
       "jieqian_self_prompt": {
         "description": "签文拆解过程与结果提示词",
-        "type": "text", 
+        "type": "text",
         "hint": "当用户没有提供具体问题时，对签文本身进行翻译和拆解的提示词",
         "default": "请对{user_id}今日抽取的灵签进行详细的翻译和拆解。要求输出格式如下：\n\n#古文翻译与直译\n[签名：xxx] 解释含义\n[吉凶：xxx] 解释含义\n[宫位：xxx] 解释含义\n[签诗版本一] 或 [签诗版本二]\n    每句诗 - 解释含义\n    每句诗 - 解释含义\n\n#寓意解析\n这支灵签的寓意：[核心寓意用方括号标出] 详细解释内容\n\n#人生指导\n[建议一] 具体建议内容\n[建议二] 具体建议内容\n\n#具体到不同领域\n[爱情婚姻] 具体指导\n[工作求职] 具体指导\n[投资理财] 具体指导\n\n注意：禁止使用markdown格式如**或*，禁止使用数字序号如一、二、三，必须使用#开头的标题和[]包围关键词"
       }

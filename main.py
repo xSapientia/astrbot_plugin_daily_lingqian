@@ -12,7 +12,7 @@ import os
 import asyncio
 
 # 导入核心模块
-from .core.variable import get_date, get_today, NUMBER_TO_CHINESE
+from .core.variable import get_date, get_today, NUMBER_TO_CHINESE, get_jieqian_statistics
 from .core.core_lq import DailyLingqianManager
 from .core.core_lq_llm import LLMManager
 from .core.core_lq_userinfo import UserInfoManager
@@ -270,6 +270,9 @@ class DailyLingqianPlugin(Star):
     
     def _build_variables(self, event: AstrMessageEvent, user_info: dict = None, lingqian_data: dict = None, **kwargs) -> dict:
         """构建模板变量字典"""
+        # 获取全局解签统计信息
+        global_stats = get_jieqian_statistics()
+        
         variables = {
             'date': get_date(),
             'today': get_today(),
@@ -277,6 +280,9 @@ class DailyLingqianPlugin(Star):
             'nickname': user_info.get('nickname', '') if user_info else event.get_sender_name(),
             'card': user_info.get('card', '') if user_info else event.get_sender_name(),
             'title': user_info.get('title', '') if user_info else '',
+            # 添加全局解签统计变量
+            'jqhi_total': global_stats['jqhi_total'],           # 历史解签总数
+            'jqhi_total_today': global_stats['jqhi_total_today'], # 今日解签总数
         }
         
         if lingqian_data:

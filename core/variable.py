@@ -80,6 +80,7 @@ TEMPLATE_VARIABLES = [
     '{jieqian_count}',   # 当日解签数
     '{jqhi_display}',    # 解签历史展示数量
     '{jqhi_total}',      # 解签历史总数
+    '{jqhi_total_today}', # 今日解签总数  
     '{jqhi_max}',        # 最大日解签数
     '{jqhi_avg}',        # 平均日解签数
     '{jqhi_min}',        # 最小日解签数
@@ -103,3 +104,54 @@ JIEQIAN_STATUS = {
     'IDLE': 'idle',         # 空闲状态
     'PROCESSING': 'processing'  # 解签中
 }
+
+# 统计函数
+def get_jieqian_statistics() -> dict:
+    """获取全局解签统计信息（所有用户）"""
+    import json
+    import os
+    
+    try:
+        jieqian_history_path = os.path.join(PLUGIN_DATA_PATH, JIEQIAN_HISTORY_FILE)
+        today = get_today()
+        
+        # 统计所有用户的解签数据
+        total_count = 0      # 历史解签总数
+        today_count = 0      # 今日解签总数
+        user_count = 0       # 参与用户数
+        
+        if os.path.exists(jieqian_history_path):
+            with open(jieqian_history_path, 'r', encoding='utf-8') as f:
+                jieqian_data = json.load(f)
+            
+            for user_id, user_data in jieqian_data.items():
+                if user_data:  # 用户有数据
+                    user_count += 1
+                    
+                    for date, records in user_data.items():
+                        if isinstance(records, list):
+                            total_count += len(records)
+                            
+                            # 统计今日解签数
+                            if date == today:
+                                today_count += len(records)
+        
+        return {
+            "jqhi_total": total_count,           # 历史解签总数
+            "jqhi_total_today": today_count,     # 今日解签总数
+            "user_count": user_count,
+            # 保持向后兼容
+            "total_count": total_count,
+            "today_count": today_count
+        }
+        
+    except Exception as e:
+        # 这里不能使用logger，因为可能会导致循环导入
+        print(f"获取全局解签统计信息失败: {e}")
+        return {
+            "jqhi_total": 0,
+            "jqhi_total_today": 0,
+            "user_count": 0,
+            "total_count": 0,
+            "today_count": 0
+        }
