@@ -185,18 +185,35 @@ class DailyLingqianManager:
             
             if lingqian_data and '内容' in lingqian_data:
                 content = lingqian_data['内容']
-                # 提取签名（第一行包含签名）
                 lines = content.split('\n')
+                
+                # 提取签名（从第一行解析，格式如：观音灵签 第一签: 钟离成道）
                 for line in lines:
-                    if '签: ' in line or '第' in line and '签' in line:
-                        # 提取签名部分
+                    line = line.strip()
+                    if '第' in line and '签:' in line:
+                        # 格式：观音灵签 第一签: 钟离成道
                         if ':' in line:
                             qianming = line.split(':', 1)[1].strip()
-                        break
+                            break
+                        elif '：' in line:
+                            qianming = line.split('：', 1)[1].strip()
+                            break
+                
+                # 如果还是未知，尝试其他解析方法
+                if qianming == "未知":
+                    for line in lines:
+                        line = line.strip()
+                        if line.startswith('观音灵签') and ':' in line:
+                            qianming = line.split(':', 1)[1].strip()
+                            break
+                        elif line.startswith('观音灵签') and '：' in line:
+                            qianming = line.split('：', 1)[1].strip()
+                            break
                 
                 # 提取宫位信息
                 for line in lines:
-                    if '宫位' in line:
+                    line = line.strip()
+                    if line.startswith('宫位'):
                         if '：' in line:
                             gongwei = line.split('：', 1)[1].strip()
                         elif ':' in line:

@@ -205,6 +205,9 @@ class LLMManager:
                 persona_prompt, jieqian_prompt, lingqian_data, content, event
             )
             
+            # 获取配置的超时时间
+            timeout_seconds = self.config.get('jieqian_config', {}).get('llm_timeout', 120)
+            
             # 调用LLM - 使用人格prompt和解签提示词，不使用system_prompt避免兼容性问题
             response = await asyncio.wait_for(
                 provider.text_chat(
@@ -215,7 +218,7 @@ class LLMManager:
                     func_tool=None,  # 不使用函数工具
                     system_prompt=""  # 不使用额外的system_prompt，人格已经在prompt中
                 ),
-                timeout=60.0  # 设置超时时间
+                timeout=float(timeout_seconds)  # 使用配置的超时时间
             )
             
             if response and response.completion_text:
@@ -294,6 +297,9 @@ class LLMManager:
                 persona_prompt, jieqian_self_prompt, lingqian_data, event
             )
             
+            # 获取配置的超时时间
+            timeout_seconds = self.config.get('jieqian_config', {}).get('llm_timeout', 120)
+            
             # 调用LLM - 使用人格prompt和签文拆解提示词，不使用system_prompt避免兼容性问题
             response = await asyncio.wait_for(
                 provider.text_chat(
@@ -304,7 +310,7 @@ class LLMManager:
                     func_tool=None,  # 不使用函数工具
                     system_prompt=""  # 不使用额外的system_prompt，人格已经在prompt中
                 ),
-                timeout=60.0  # 设置超时时间
+                timeout=float(timeout_seconds)  # 使用配置的超时时间
             )
             
             if response and response.completion_text:
