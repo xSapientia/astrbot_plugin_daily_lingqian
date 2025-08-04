@@ -198,7 +198,7 @@ class LLMManager:
             # 获取解签提示词模板
             jieqian_prompt = self.config.get('jieqian_config', {}).get('jieqian_prompt', '')
             if not jieqian_prompt:
-                jieqian_prompt = "请根据{user_id}今日抽取的灵签, 对其提出的问题进行解签, 50字以内"
+                jieqian_prompt = "请根据{user_id}今日抽取的灵签，对其提出的问题进行简洁解签，请严格控制在50字以内"
             
             # 根据用户ID和灵签数据构建完整的解签提示词
             full_prompt = await self._build_detailed_jieqian_prompt(
@@ -290,7 +290,7 @@ class LLMManager:
             # 获取签文拆解提示词模板
             jieqian_self_prompt = self.config.get('jieqian_config', {}).get('jieqian_self_prompt', '')
             if not jieqian_self_prompt:
-                jieqian_self_prompt = "请对{user_id}今日抽取的灵签进行详细的翻译和拆解，包括签文含义、诗句解读、人生指导等，让用户更好地理解这支灵签的寓意，200字以内"
+                jieqian_self_prompt = "请对{user_id}今日抽取的灵签进行简洁的翻译和拆解，包括核心寓意和指导建议，请严格控制在50字以内"
             
             # 根据用户ID和灵签数据构建完整的签文拆解提示词
             full_prompt = await self._build_detailed_jieqian_self_prompt(
@@ -348,11 +348,14 @@ class LLMManager:
             if persona_prompt:
                 full_prompt += f"{persona_prompt}\n\n"
             
-            # 添加签文拆解提示词，并插入用户名称
-            formatted_jieqian_self_prompt = jieqian_self_prompt.replace("{user_id}", user_name)
+            # 构建完整的签文拆解提示词，完全基于配置内容
+            # 支持配置中的所有变量替换
+            formatted_jieqian_self_prompt = self._replace_all_variables(
+                jieqian_self_prompt, user_name, lingqian_data, detailed_lingqian, "", event
+            )
             full_prompt += f"{formatted_jieqian_self_prompt}\n\n"
             
-            # 添加具体的灵签信息
+            # 添加具体的灵签信息供LLM参考
             if detailed_lingqian:
                 full_prompt += f"「{user_name}」今日抽取的观音灵签信息：\n"
                 full_prompt += f"签序：{detailed_lingqian.get('签序', qianxu)}\n"
@@ -380,18 +383,15 @@ class LLMManager:
                 if '内容' in lingqian_data:
                     full_prompt += f"灵签内容：\n{lingqian_data['内容']}\n\n"
             
-            # 添加结尾指导
-            full_prompt += f"请为「{user_name}」详细解读这支灵签的深层含义，包括古文翻译、寓意解析、人生指导等。在回答中请称呼用户为「{user_name}」。"
-            
             return full_prompt
             
         except Exception as e:
             logger.error(f"构建详细签文拆解提示词失败: {e}")
             # 降级处理
-            fallback_prompt = f"请对以下灵签进行详细的翻译和拆解：\n"
+            fallback_prompt = f"请对以下灵签进行简洁的翻译和拆解：\n"
             if lingqian_data:
                 fallback_prompt += f"灵签信息：{lingqian_data}\n"
-                fallback_prompt += f"请包括签文含义、诗句解读、人生指导等内容。"
+                fallback_prompt += f"请包括核心寓意和指导建议，严格控制在50字以内。"
             return fallback_prompt
     
     async def _build_detailed_jieqian_prompt(self, persona_prompt: str, jieqian_prompt: str, 
@@ -414,11 +414,14 @@ class LLMManager:
             if persona_prompt:
                 full_prompt += f"{persona_prompt}\n\n"
             
-            # 添加解签提示词，并插入用户名称
-            formatted_jieqian_prompt = jieqian_prompt.replace("{user_id}", user_name)
+            # 构建完整的解签提示词，完全基于配置内容
+            # 支持配置中的所有变量替换
+            formatted_jieqian_prompt = self._replace_all_variables(
+                jieqian_prompt, user_name, lingqian_data, detailed_lingqian, content, event
+            )
             full_prompt += f"{formatted_jieqian_prompt}\n\n"
             
-            # 添加具体的灵签信息
+            # 添加具体的灵签信息供LLM参考
             if detailed_lingqian:
                 full_prompt += f"今日抽取的观音灵签信息：\n"
                 full_prompt += f"签序：{detailed_lingqian.get('签序', qianxu)}\n"
@@ -444,19 +447,19 @@ class LLMManager:
                 if '内容' in lingqian_data:
                     full_prompt += f"灵签内容：\n{lingqian_data['内容']}\n\n"
             
-            # 添加用户问题
-            full_prompt += f"用户「{user_name}」的问题：{content}\n\n"
-            full_prompt += f"请根据上述灵签信息，结合用户「{user_name}」的问题，提供智慧的解签和人生指导。在回答中请称呼用户为「{user_name}」。"
+            # 添加用户问题信息
+            full_prompt += f"用户「{user_name}」的问题：{content}\n"
             
             return full_prompt
             
         except Exception as e:
             logger.error(f"构建详细解签提示词失败: {e}")
             # 降级处理
-            fallback_prompt = f"请根据以下信息为用户提供解签指导：\n"
+            fallback_prompt = f"请根据以下信息为用户提供简洁解签指导：\n"
             fallback_prompt += f"用户问题：{content}\n"
             if lingqian_data:
                 fallback_prompt += f"灵签信息：{lingqian_data}\n"
+            fallback_prompt += f"请严格控制回复在50字以内。"
             return fallback_prompt
     
     async def _load_lingqian_json(self, qianxu: int) -> dict:
@@ -778,3 +781,63 @@ class LLMManager:
         except Exception as e:
             logger.error(f"重置所有解签数据失败: {e}")
             return False
+    
+    def _replace_all_variables(self, template: str, user_name: str, lingqian_data: dict, 
+                              detailed_lingqian: dict, content: str, event: AstrMessageEvent) -> str:
+        """替换提示词模板中的所有变量"""
+        try:
+            from .variable import get_today
+            
+            # 基础变量
+            result = template.replace("{user_id}", user_name)
+            result = result.replace("{nickname}", user_name)
+            result = result.replace("{card}", user_name)
+            result = result.replace("{date}", get_today())
+            result = result.replace("{today}", get_today())
+            result = result.replace("{content}", content or "")
+            
+            # 灵签相关变量
+            if detailed_lingqian:
+                result = result.replace("{title}", detailed_lingqian.get('签名', ''))
+                result = result.replace("{qianxu}", str(detailed_lingqian.get('签序', '')))
+                result = result.replace("{qianming}", detailed_lingqian.get('签名', ''))
+                result = result.replace("{jixiong}", detailed_lingqian.get('吉凶', ''))
+                result = result.replace("{gongwei}", detailed_lingqian.get('宫位', ''))
+            elif lingqian_data:
+                result = result.replace("{title}", lingqian_data.get('qianming', ''))
+                result = result.replace("{qianxu}", str(lingqian_data.get('qianxu', '')))
+                result = result.replace("{qianming}", lingqian_data.get('qianming', ''))
+                result = result.replace("{jixiong}", lingqian_data.get('jixiong', ''))
+                result = result.replace("{gongwei}", lingqian_data.get('gongwei', ''))
+            
+            # 处理其他可能的变量（设置为空值或默认值）
+            variable_defaults = {
+                "{lqpic}": "",
+                "{jqxh}": "",
+                "{jieqian}": "",
+                "{lingqian_ranks}": "",
+                "{lingqian_history_content}": "",
+                "{lqhi_display}": "0",
+                "{lqhi_total}": "0",
+                "{lqhi_shang_total}": "0",
+                "{lqhi_zhong_total}": "0",
+                "{lqhi_xia_total}": "0",
+                "{jieqian_ranks}": "",
+                "{jieqian_history_content}": "",
+                "{jieqian_count}": "0",
+                "{jqhi_display}": "0",
+                "{jqhi_total}": "0",
+                "{jqhi_total_today}": "0",
+                "{jqhi_max}": "0",
+                "{jqhi_avg}": "0",
+                "{jqhi_min}": "0"
+            }
+            
+            for var, default_value in variable_defaults.items():
+                result = result.replace(var, default_value)
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"替换提示词变量失败: {e}")
+            return template
