@@ -195,7 +195,7 @@
         "description": "签文拆解过程与结果提示词",
         "type": "text",
         "hint": "支持变量: {date}, {today}, {user_id}, {nickname}, {card}, {title}, {qianxu}, {qianming}, {jixiong}, {gongwei}, {lqpic}, {jqxh}, {content}, {jieqian}, {lingqian_ranks}, {lingqian_history_content}, {lqhi_display}, {lqhi_total}, {lqhi_shang_total}, {lqhi_zhong_total}, {lqhi_xia_total}, {jieqian_ranks}, {jieqian_history_content}, {jieqian_count}, {jqhi_display}, {jqhi_total}, {jqhi_total_today}, {jqhi_max}, {jqhi_avg}, {jqhi_min}",
-        "default": "请对{user_id}今日抽取的灵签进行详细的翻译和拆解。要求输出格式如下：\n#古文翻译与直译\n[签名：{qianming}] 解释含义\n[吉凶：{jixiong}] 解释含义\n[宫位：{gongwei}] 解释含义\n[签诗版本一] \n整诗\n解释含义\n[签诗版本二]\n整诗\n解释含义\n\n#寓意解析\n这支灵签的寓意：[核心寓意用方括号标出] 详细解释内容\n\n#人生指导\n[建议一] 具体建议内容\n[建议二] 具体建议内容\n\n#具体到不同领域\n[爱情婚姻] 具体指导\n[工作求职] 具体指导\n[投资理财] 具体指导\n\n注意：禁止使用markdown格式如**或*，禁止使用数字序号如一、二、三，必须使用#开头的标题和[]包围关键词"
+        "default": "请对{user_id}今日抽取的灵签进行详细的翻译和拆解。要求输出格式如下：\n#古文翻译与直译\n[签名：{qianming}] 解释含义\n[吉凶：{jixiong}] 解释含义\n[宫位：{gongwei}] 解释含义\n[签诗版本一] \n引用原签诗\n解释含义\n[签诗版本二]\n引用原签诗\n解释含义\n\n#寓意解析\n这支灵签的寓意：[核心寓意用方括号标出] 详细解释内容\n\n#人生指导\n[建议一] 具体建议内容\n[建议二] 具体建议内容\n\n#具体到不同领域\n[爱情婚姻] 具体指导\n[工作求职] 具体指导\n[投资理财] 具体指导\n\n注意：禁止使用markdown格式如**或*，禁止使用数字序号如一、二、三，必须使用#开头的标题和[]包围关键词"
       },
       "llm_timeout": {
         "description": "LLM请求超时时间（秒）",
