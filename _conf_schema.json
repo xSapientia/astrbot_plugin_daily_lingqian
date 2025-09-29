@@ -41,7 +41,7 @@
     "hint": "例如: -1, -3, -5, -10, 0, 1, 5, 10, 20，单位为%",
     "default": "-1, -3, -5, -10, 0, 1, 5, 10, 20"
   },
-  "daily_fortune_tip_template": {
+  "lingqian_jrrptip_template": {
     "description": "未抽取人品时的提示模板",
     "type": "text",
     "hint": "支持变量: {date}, {today}, {user_id}, {nickname}, {card}, {title}, {qianxu}, {qianming}, {jixiong}, {gongwei}, {lqpic}, {jqxh}, {content}, {jieqian}, {lingqian_ranks}, {lingqian_history_content}, {lqhi_display}, {lqhi_total}, {lqhi_shang_total}, {lqhi_zhong_total}, {lqhi_xia_total}, {jieqian_ranks}, {jieqian_history_content}, {jieqian_count}, {jqhi_display}, {jqhi_total}, {jqhi_total_today}, {jqhi_max}, {jqhi_avg}, {jqhi_min}",

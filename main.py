@@ -150,10 +150,18 @@ class DailyLingqianPlugin(Star):
                 return None
             
             today = get_today()
-            if today not in fortune_data[user_id]:
+            user_fortune_data = fortune_data[user_id]
+            
+            # 查找今日的人品数据（支持带时间戳的日期格式）
+            user_fortune = None
+            for date_key, data in user_fortune_data.items():
+                if date_key.startswith(today):  # 匹配今日日期，忽略时间部分
+                    user_fortune = data
+                    break
+            
+            if not user_fortune:
                 return None
             
-            user_fortune = fortune_data[user_id][today]
             jrrp = user_fortune.get('jrrp', 0)
             
             # 读取ranges配置
@@ -254,7 +262,14 @@ class DailyLingqianPlugin(Star):
                 return False
             
             today = get_today()
-            return today in fortune_data[user_id]
+            user_fortune_data = fortune_data[user_id]
+            
+            # 检查是否有今日的数据（支持带时间戳的日期格式）
+            for date_key in user_fortune_data.keys():
+                if date_key.startswith(today):  # 匹配今日日期，忽略时间部分
+                    return True
+            
+            return False
             
         except Exception as e:
             logger.error(f"检查人品前置条件失败: {e}")
