@@ -183,65 +183,30 @@ class DailyLingqianPlugin(Star):
             return None
     
     def _load_fortune_data(self) -> dict:
-        """加载人品数据 - 兼容新的缓存格式"""
+        """加载人品数据"""
         try:
-            # 首先尝试读取新的daily_fortune.json文件
-            daily_fortune_path = "data/plugin_data/astrbot_plugin_daily_fortune/daily_fortune.json"
-            if os.path.exists(daily_fortune_path):
-                with open(daily_fortune_path, 'r', encoding='utf-8-sig') as f:
-                    daily_data = json.load(f)
-                
-                # 转换新格式到旧格式兼容
-                converted_data = {}
-                today = get_today()
-                
-                # 新格式: {date: {user_id: {jrrp: xx, fortune: xx, ...}}}
-                # 需要转换为旧格式: {user_id: {date: {jrrp: xx, fortune: xx}}}
-                for date, users in daily_data.items():
-                    for user_id, user_data in users.items():
-                        if user_id not in converted_data:
-                            converted_data[user_id] = {}
-                        converted_data[user_id][date] = {
-                            'jrrp': user_data.get('jrrp', 0),
-                            'fortune': user_data.get('fortune', '未知')
-                        }
-                
-                logger.debug(f"成功加载新格式人品数据，用户数: {len(converted_data)}")
-                return converted_data
-            
-            # 回退到旧的fortune_history.json文件
-            fortune_history_path = "data/plugin_data/astrbot_plugin_daily_fortune/fortune_history.json"
-            if os.path.exists(fortune_history_path):
-                with open(fortune_history_path, 'r', encoding='utf-8-sig') as f:
-                    data = json.load(f)
-                logger.debug(f"成功加载旧格式人品数据，用户数: {len(data)}")
-                return data
-                
-            logger.warning("未找到任何人品数据文件")
+            fortune_path = "data/plugin_data/astrbot_plugin_daily_fortune/fortune_history.json"
+            if os.path.exists(fortune_path):
+                with open(fortune_path, 'r', encoding='utf-8-sig') as f:
+                    return json.load(f)
             return {}
-            
         except Exception as e:
-            logger.error(f"无法读取人品数据文件: {e}")
+            logger.error(f"无法读取fortune_history.json内容: {e}")
             return {}
     
     def _load_fortune_ranges(self) -> tuple:
-        """加载人品范围配置 - 兼容新的配置格式"""
+        """加载人品范围配置"""
         try:
             config_path = "data/config/astrbot_plugin_daily_fortune_config.json"
             if os.path.exists(config_path):
                 with open(config_path, 'r', encoding='utf-8-sig') as f:
                     fortune_config = json.load(f)
-                    # 支持新旧两种配置key名称
-                    ranges_jrrp = fortune_config.get('ranges_jrrp', '') or fortune_config.get('jrrp_ranges', '')
-                    ranges_fortune = fortune_config.get('ranges_fortune', '') or fortune_config.get('fortune_names', '')
-                    logger.debug(f"成功加载人品范围配置: jrrp_ranges='{ranges_jrrp}', fortune_names='{ranges_fortune}'")
+                    ranges_jrrp = fortune_config.get('ranges_jrrp', '')
+                    ranges_fortune = fortune_config.get('ranges_fortune', '')
                     return ranges_jrrp, ranges_fortune
-            
-            logger.warning("未找到人品插件配置文件")
             return None, None
-            
         except Exception as e:
-            logger.error(f"无法读取人品范围配置: {e}")
+            logger.error(f"无法读取ranges_jrrp内容: {e}")
             return None, None
     
     def _get_jrrp_range_index(self, jrrp: int, ranges_jrrp: str) -> int:
